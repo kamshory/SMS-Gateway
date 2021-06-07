@@ -7,6 +7,12 @@ public class Config {
 		
 	}
 
+	private static String wsClientEndpoint = "ws://localhost:8888/ws?session=1";
+	private static String wsClientUsername = "qa";
+	private static String wsClientPassword = "4lt0@1234";
+	private static String portName = "COM3";
+	private static String sessionName = "SMSSESSID";
+
 	public static String getPortName() {
 		return portName;
 	}
@@ -46,10 +52,5 @@ public class Config {
 		Config.sessionName = sessionName;
 	}
 
-	private static String wsClientEndpoint = "ws://localhost:8888/ws?session=1";
-	private static String wsClientUsername = "qa";
-	private static String wsClientPassword = "4lt0@1234";
-	private static String portName = "COM3";
-	private static String sessionName = "SMSSESSID";
 
 }
