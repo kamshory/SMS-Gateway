@@ -29,6 +29,7 @@ public class WebSocketClient extends Thread implements WebSocket
 	private Session session = null;
 	private SMSInstance smsService;
 	private WebSocketContainer container;
+	private boolean stoped = false;
 	public WebSocketClient(SMSInstance smsService) {
 		this.smsService = smsService;
 	}
@@ -56,7 +57,7 @@ public class WebSocketClient extends Thread implements WebSocket
 				e.printStackTrace();
 				try 
 				{
-					Thread.sleep(1000);
+					Thread.sleep(Config.getReconnectDelay());
 				} 
 				catch (InterruptedException e1) 
 				{
@@ -73,10 +74,24 @@ public class WebSocketClient extends Thread implements WebSocket
 				}
 			}
 		}
-		while(!connected);
+		while(!connected && !stoped);
+	}
+	public void stopService()
+	{
+		try {
+			if(this.session != null && this.session.isOpen())
+			{
+				this.session.close();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		this.stoped = true;
 	}
 	public void initWSClient(SMSInstance smss) throws WSConnectionException
 	{
+		this.session = null;
+		this.container = null;
 		try
 		{
 			if(smss != null)

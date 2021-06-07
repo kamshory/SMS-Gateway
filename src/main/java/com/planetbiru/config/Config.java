@@ -12,6 +12,7 @@ public class Config {
 	private static String wsClientPassword = "4lt0@1234";
 	private static String portName = "COM3";
 	private static String sessionName = "SMSSESSID";
+	private static long reconnectDelay = 5000;
 
 	public static String getPortName() {
 		return portName;
@@ -50,6 +51,12 @@ public class Config {
 
 	public static void setSessionName(String sessionName) {
 		Config.sessionName = sessionName;
+	}
+	public static long getReconnectDelay() {
+		return reconnectDelay;
+	}
+	public static void setReconnectDelay(long reconnectDelay) {
+		Config.reconnectDelay = reconnectDelay;
 	}
 
 

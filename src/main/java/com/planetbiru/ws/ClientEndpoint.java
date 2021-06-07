@@ -11,6 +11,8 @@ import javax.websocket.Session;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.planetbiru.config.Config;
 import com.planetbiru.gsm.SMSInstance;
 
 public class ClientEndpoint extends Endpoint {
@@ -90,7 +92,7 @@ public class ClientEndpoint extends Endpoint {
 		System.out.println("on close : "+closeReason.getReasonPhrase());
 		try 
 		{
-			Thread.sleep(1000);
+			Thread.sleep(Config.getReconnectDelay());
 		} 
 		catch (InterruptedException e) 
 		{

@@ -1,16 +1,19 @@
 package com.planetbiru;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.planetbiru.config.Config;
+import com.planetbiru.config.ServerConfig;
 import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.util.FileNotFoundException;
@@ -47,12 +51,29 @@ public class RequestHandler {
 
 	private String sessionName;
 	
+	private ServerConfig mime = new ServerConfig();
+	
 	@PostConstruct
 	public void init()
 	{
 		initConfig();		
-		initSerial();
-		initWSClient();
+		//initSerial();
+		//initWSClient();
+		
+		try 
+		{
+			mime = new ServerConfig("/static/config/config.ini");
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	@PreDestroy
+	public void destroy()
+	{
+		wsClient.stopService();
 	}
 	
 	private void initConfig() {
@@ -74,9 +95,6 @@ public class RequestHandler {
 		wsClient.start();	
 	}
 	
-	String username = "";
-	String password = "";
-
 	@PostMapping(path="/login/**")
 	public ResponseEntity<byte[]> handleGet(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
 	{		
@@ -98,12 +116,9 @@ public class RequestHandler {
 				e.printStackTrace();
 			}
 	    }
-	    username = queryPairs.getOrDefault("username", "");
-	    password = queryPairs.getOrDefault("password", "");
+	    String username = queryPairs.getOrDefault("username", "");
+	    String password = queryPairs.getOrDefault("password", "");
 	    
-	    System.out.println(username);
-	    System.out.println(password);
-		
 		String fileName = this.getFileName(request);
 		byte[] responseBody = "".getBytes();
 		try 
@@ -133,28 +148,145 @@ public class RequestHandler {
 		byte[] responseBody = "".getBytes();
 		try 
 		{
-			responseBody = FileUtil.read(fileName);
+			responseBody = FileUtil.readResource(fileName);
 		} 
 		catch (FileNotFoundException e) 
 		{
 			statusCode = HttpStatus.NOT_FOUND;
 		}
 		CookieServer cookie = new CookieServer(headers);
-		String u = cookie.getSessionData().optString("username", "");
-		String p = cookie.getSessionData().optString("password", "");
-		System.out.println(u);
-		System.out.println(p);
+		
+		
+		WebContent newContent = this.updateContent(fileName, responseHeaders, responseBody, statusCode, cookie);
+		
+		
+		responseBody = newContent.getResponseBody();
+		responseHeaders = newContent.getResponseHeaders();
+		statusCode = newContent.getStatusCode();
+		String contentType = this.getMIMEType(fileName);
+		
+		responseHeaders.add("Content-type", contentType);
 		cookie.putToHeaders(responseHeaders);
 		
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+
+	private String getMIMEType(String fileName) {
+		String[] arr = fileName.split("\\.");	
+		String ext = arr[arr.length - 1];
+		return 	mime.getString("MIME", ext, "");
+	}
+
+	private WebContent updateContent(String fileName, HttpHeaders responseHeaders, byte[] responseBody, HttpStatus statusCode, CookieServer cookie) {
+		String contentType = this.getMIMEType(fileName);
+		WebContent webContent = new WebContent(fileName, responseHeaders, responseBody, statusCode, cookie, contentType);
+		boolean requireLogin = false;
+		String fileSub = "";
+		
+		
+		if(fileName.toLowerCase().endsWith(".html"))
+		{
+			JSONObject authFileInfo = this.processAuthFile(responseBody);
+			requireLogin = authFileInfo.optBoolean("content", false);
+			fileSub = this.getFileName(authFileInfo.optString("file", ""));
+		}
+
+		String username = cookie.getSessionData().optString("username", "");
+		String password = cookie.getSessionData().optString("password", "");
+		JSONObject userInfo;
+		if(requireLogin)
+		{
+			userInfo = this.getUserInfo(username);
+			if(!userInfo.optString("password", "").equals(password))
+			{
+				try 
+				{
+					responseBody = FileUtil.readResource(fileSub);
+					return this.updateContent(fileSub, responseHeaders, responseBody, statusCode, cookie);
+				} 
+				catch (FileNotFoundException e) 
+				{
+					e.printStackTrace();
+					statusCode = HttpStatus.NOT_FOUND;
+					webContent.setStatusCode(statusCode);
+				}				
+			}
+		}
+		return webContent;
+	}
+
+	private JSONObject getUserInfo(String uusername) 
+	{
+		JSONObject userInfo = new JSONObject();
+		userInfo.put("password", "barujuga");
+		return userInfo;
+	}
+
+	private JSONObject processAuthFile(byte[] responseBody) 
+	{
+		String responseString = new String(responseBody);
+		int start = 0;
+		int end = 0;
+		do {
+			start = responseString.toLowerCase().indexOf("<meta ", end);
+			end = responseString.toLowerCase().indexOf(">", start);
+			if(start >-1 && end >-1 && end < responseString.length())
+			{
+				String meta = responseString.substring(start, end+1);
+				meta = this.fixMeta(meta);
+				try
+				{
+					JSONObject xx = XML.toJSONObject(meta);
+					if(requireLogin(xx))
+					{
+						return xx.optJSONObject("meta");
+					}
+				}
+				catch(JSONException e)
+				{
+					/**
+					 * Do nothing
+					 */
+				}
+			}
+		}
+		while(start > -1);
+		return new JSONObject();
+	}
+	private boolean requireLogin(JSONObject xx) {
+		if(xx != null && xx.has("meta"))
+		{
+			JSONObject metaData = xx.optJSONObject("meta");
+			if(metaData != null)
+			{
+				String name = metaData.optString("name", "");
+				boolean content = metaData.optBoolean("content", false);
+				if(name.equals("requite-login") && content)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private String fixMeta(String input)
+	{
+		if(input.indexOf("</meta>") == -1 && input.indexOf("/>") == -1)
+		{
+			input = input.replace(">", "/>");
+		}
+		return input.toLowerCase();
 	}
 
 	private String getFileName(HttpServletRequest request) 
 	{
 		return "/static/www"+request.getServletPath();
 	}
-	
-	
+	private String getFileName(String request) 
+	{
+		return "/static/www"+request;
+	}
 
 	@GetMapping(path="/api**")
 	public ResponseEntity<String> handleGet2(@RequestHeader HttpHeaders headers, HttpServletRequest request)

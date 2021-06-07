@@ -1,5 +1,6 @@
 package com.planetbiru.cookie;
 
+import java.io.*;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.Map;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.net.URLCodec;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 
@@ -204,10 +206,28 @@ public class CookieServer {
 		String sessionFile = this.getSessionFile();
 		try 
 		{
+			File file = new File(sessionFile);
+			String directory1 = file.getParent();
+			File file2 = new File(directory1);
+			String directory2 = file2.getParent();
+			
+			File d1 = new File(directory1);
+			File d2 = new File(directory2);		
+
+			if(!d2.exists())
+			{
+				d2.mkdir();
+			}
+			if(!d1.exists())
+			{
+				d1.mkdir();
+			}
+
 			FileUtil.write(sessionFile, this.getSessionData().toString().getBytes());
 		} 
 		catch (IOException e) 
 		{
+			e.printStackTrace();
 			/**
 			 * Do nothing
 			 */
@@ -218,10 +238,14 @@ public class CookieServer {
 		String sessionFile = this.getSessionFile();
 		try 
 		{
-			String text = new String(FileUtil.read(sessionFile));
-			jsonData = new JSONObject(text);
+			byte[] data = FileUtil.read(sessionFile);
+			if(data != null)
+			{
+				String text = new String(data);
+				jsonData = new JSONObject(text);
+			}
 		} 
-		catch (FileNotFoundException e) 
+		catch (JSONException | FileNotFoundException e) 
 		{
 			/**
 			 * Do nothing
@@ -230,7 +254,8 @@ public class CookieServer {
 		return jsonData;
 	}
 	private String getSessionFile() {
-		return "/static/session/"+this.sessionID;
+		String dir = FileUtil.class.getResource("/").getFile();
+		return dir+"/static/session/"+this.sessionID;
 	}
 	public void setSessionValue(String sessionKey, Object sessionValue) {
 		this.getSessionData().put(sessionKey, sessionValue);		
