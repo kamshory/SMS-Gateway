@@ -1,4 +1,4 @@
-package com.planetbiru.util;
+package com.planetbiru.cons;
 
 public class ConstantString {
 	

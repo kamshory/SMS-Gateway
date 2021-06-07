@@ -22,7 +22,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.planetbiru.config.Config;
-import com.planetbiru.gsm.SMSService;
+import com.planetbiru.cookie.CookieServer;
+import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;
 import com.planetbiru.ws.WebSocketClient;
@@ -31,7 +32,7 @@ import com.planetbiru.ws.WebSocketClient;
 public class RequestHandler {
 
 	@Autowired
-	SMSService smsService;
+	SMSInstance smsService;
 	
 	@Autowired
 	WebSocketClient wsClient;

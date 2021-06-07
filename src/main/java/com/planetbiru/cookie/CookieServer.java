@@ -1,4 +1,4 @@
-package com.planetbiru;
+package com.planetbiru.cookie;
 
 import java.io.IOException;
 import java.util.Date;

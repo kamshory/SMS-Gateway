@@ -24,6 +24,8 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.planetbiru.cons.ConstantString;
+
 public class Utility {
 	
 	private static final Logger logger = LogManager.getLogger(Utility.class);

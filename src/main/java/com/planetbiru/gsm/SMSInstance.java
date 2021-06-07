@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SMSService {
+public class SMSInstance {
 	private GSM gsm;
-	public SMSService()
+	public SMSInstance()
 	{
 		/**
 		 * Constructor

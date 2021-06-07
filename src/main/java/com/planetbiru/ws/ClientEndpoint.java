@@ -11,13 +11,13 @@ import javax.websocket.Session;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import com.planetbiru.gsm.SMSService;
+import com.planetbiru.gsm.SMSInstance;
 
 public class ClientEndpoint extends Endpoint {
 	private WebSocketClient webSocketClient;
-	private SMSService smsService;
+	private SMSInstance smsService;
 	private Session session;
-	public ClientEndpoint(WebSocketClient webSocketClient, SMSService smsService) {
+	public ClientEndpoint(WebSocketClient webSocketClient, SMSInstance smsService) {
 		this.webSocketClient = webSocketClient;
 		this.smsService = smsService;
 	}

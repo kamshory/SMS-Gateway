@@ -15,7 +15,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import com.planetbiru.config.Config;
-import com.planetbiru.gsm.SMSService;
+import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.util.Utility;
 
 import javax.websocket.ClientEndpointConfig.Configurator;
@@ -27,9 +27,9 @@ public class WebSocketClient extends Thread implements WebSocket
 {
 	private static Object waitLock = new Object();
 	private Session session = null;
-	private SMSService smsService;
+	private SMSInstance smsService;
 	private WebSocketContainer container;
-	public WebSocketClient(SMSService smsService) {
+	public WebSocketClient(SMSInstance smsService) {
 		this.smsService = smsService;
 	}
 
@@ -75,7 +75,7 @@ public class WebSocketClient extends Thread implements WebSocket
 		}
 		while(!connected);
 	}
-	public void initWSClient(SMSService smss) throws WSConnectionException
+	public void initWSClient(SMSInstance smss) throws WSConnectionException
 	{
 		try
 		{
@@ -230,7 +230,7 @@ public class WebSocketClient extends Thread implements WebSocket
 		return null;
 	}
 
-	public void setSMSService(SMSService smsService) {
+	public void setSMSService(SMSInstance smsService) {
 		this.smsService = smsService;	
 	}
 
