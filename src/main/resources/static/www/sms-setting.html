@@ -7,13 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1; user-scalable=no">
     <meta name="description" content="SMS Gateway">
     <meta name="author" content="Planetbiru">
-    <meta name="require-login" content="true" data-file="/login-form.html">
     <link rel="icon" href="favicon.ico">  
     <title>SMS Gateway</title>
     <link href="lib.assets/css/bootstrap.css" rel="stylesheet">
     <link href="lib.assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
     <link href="lib.assets/css/navbar.css" rel="stylesheet">
-    <link href="lib.assets/css/style.css?_=3707022" rel="stylesheet">
+    <link href="lib.assets/css/style.css?_=7887359" rel="stylesheet">
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <script src="lib.assets/js/ie-emulation-modes-warning.js"></script>
     <script src="lib.assets/js/ie10-viewport-bug-workaround.js"></script>    
@@ -39,7 +38,7 @@
           
                   <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-              <li class="active "><a href="./">Home</a></li>
+              <li class=""><a href="./">Home</a></li>
               <li class=""><a href="ussd.html">USSD</a></li>
               <li class=""><a href="sms.html">SMS</a></li>
               <li class="dropdown">
@@ -47,7 +46,7 @@
                 <ul class="dropdown-menu">
                   <li class=""><a href="admin.html">Administrator Setting</a></li>
                   <li class=""><a href="feeder-setting.html">Feeder Setting</a></li>
-                  <li class=""><a href="sms-setting.html">SMS Setting</a></li>
+                  <li class="active "><a href="sms-setting.html">SMS Setting</a></li>
                   <li role="separator" class="divider"></li>
                   <li class="dropdown-header">Other Configs</li>
                   <li><a href="#">Config 1</a></li>
@@ -64,9 +63,49 @@
         </div>
         <!--/.container-fluid -->
       </nav>
-      <div class="phone-page">
+      <div class="phone-page">        <h3>SMS Setting</h3>
+        <form action="sms-setting.html" method="post">
+          <table class="config-table config-table-connection">
+            <tbody>
+              <tr>
+                <td>Connection Type</td>
+                <td><input type="text" name="connection_type" id="connection_type" value="usb/tty">	
+                </td>
+              </tr>
+              <tr>
+                <td>SMS Center</td>
+                <td><input type="text" name="sms_center" id="sms_center" value="+62811000000">	
+                </td>
+              </tr>
+              <tr>
+                <td>Minimum Interval (Second)</td>
+                <td><input type="number" name="incomming_interval" id="incomming_interval" value="120">	
+                </td>
+              </tr>
+              <tr>
+                <td>Time Range (Second)</td>
+                <td><input type="number" name="time_range" id="time_range" value="120">	
+                </td>
+              </tr>
+              <tr>
+                <td>Maximum Per Time Range</td>
+                <td><input type="number" name="max_per_time_range" id="max_per_time_range" value="240">	
+                </td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>
+                <input type="submit" class="btn btn-success" name="save_sms_setting" id="save_sms_setting" value="Save">	
+                <input type="button" class="btn btn-primary" name="detect_device" id="detect_device" value="Detect Device">	
+                <input type="reset" class="btn btn-default" class="btn btn-default" value="Reset">	
+                </td>
+              </tr>
+            </tbody>
+          </table>
+       
+        </form>
 
-
+    
     </div>
     <!-- /container -->
 </body>

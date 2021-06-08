@@ -19,15 +19,20 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.planetbiru.config.Config;
 import com.planetbiru.config.ServerConfig;
+import com.planetbiru.cookie.CookieItem;
 import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.gsm.SMSInstance;
+import com.planetbiru.user.User;
+import com.planetbiru.user.UserAccount;
 import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;
 import com.planetbiru.ws.WebSocketClient;
@@ -40,6 +45,9 @@ public class RequestHandler {
 	
 	@Autowired
 	WebSocketClient wsClient;
+	
+	@Autowired
+	UserAccount userAccount;
 
 	private String portName = "COM3";
 
@@ -95,52 +103,299 @@ public class RequestHandler {
 		wsClient.start();	
 	}
 	
-	@PostMapping(path="/login/**")
-	public ResponseEntity<byte[]> handleGet(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	@PostMapping(path="/login.html")
+	public ResponseEntity<byte[]> handleLogin(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
 	{		
 		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		
+		Map<String, String> queryPairs = this.parseURLEncoded(requestBody);
+	    
+	    String username = queryPairs.getOrDefault("username", "");
+	    String password = queryPairs.getOrDefault("password", "");
+	    String next = queryPairs.getOrDefault("next", "");
+	    
+	    if(next.isEmpty())
+		{
+	    	next = "/index.html";
+		}
+		responseHeaders.add("Cache-Control", "no-cache");
+	    responseHeaders.add("Content-type", "application/json");
+	    
+	    JSONObject res = new JSONObject();
+	    JSONObject payload = new JSONObject();
+	    payload.put("nextURL", next);
+	    res.put("code", 0);
+	    res.put("payload", payload);
+	    
+		cookie.setSessionValue("username", username);
+		cookie.setSessionValue("password", password);
+		if(userAccount.checkUserAuth(username, password))
+		{
+			userAccount.updateLastActive(username);
+			userAccount.save();
+		}
+		
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+
+		byte[] responseBody = res.toString().getBytes();
+
 		HttpStatus statusCode = HttpStatus.OK;
 		
-		Map<String, String> queryPairs = new LinkedHashMap<>();
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}	
+	
+	
+	@GetMapping(path="/logout.html")
+	public ResponseEntity<byte[]> handleLogout(@RequestHeader HttpHeaders headers, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
 		
-		String[] pairs = requestBody.split("&");
+		byte[] responseBody = "".getBytes();
+		cookie.destroySession();
+		cookie.putToHeaders(responseHeaders);
+
+		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
+		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add("Location", "/index.html");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+
+	@GetMapping(path="/user/list")
+	public ResponseEntity<byte[]> handleUserList(@RequestHeader HttpHeaders headers, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		if(this.checkUserAuth(headers))
+		{
+			String list = userAccount.list();
+			responseBody = list.getBytes();
+		}
+		else
+		{
+			statusCode = HttpStatus.UNAUTHORIZED;			
+			responseHeaders.add("Location", "/index.html");
+		}
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	
+	
+	@GetMapping(path="/account/self")
+	public ResponseEntity<byte[]> handleSelfAccount(@RequestHeader HttpHeaders headers, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		if(this.checkUserAuth(headers))
+		{
+			String loggedUsername = (String) cookie.getSessionValue("username", "");
+			String list = userAccount.getUser(loggedUsername).toString();
+			responseBody = list.getBytes();
+		}
+		else
+		{
+			statusCode = HttpStatus.UNAUTHORIZED;			
+			responseHeaders.add("Location", "/index.html");
+		}
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	@GetMapping(path="/user/detail/{username}")
+	public ResponseEntity<byte[]> handleUserGet(@RequestHeader HttpHeaders headers, @PathVariable(value="username") String username, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		if(this.checkUserAuth(headers))
+		{
+			String data = userAccount.getUser(username).toString();
+			responseBody = data.getBytes();
+		}
+		else
+		{
+			statusCode = HttpStatus.UNAUTHORIZED;			
+			responseHeaders.add("Location", "/index.html");
+		}
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+
+	@PostMapping(path="/user/add**")
+	public ResponseEntity<byte[]> userAdd(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	{		
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
+		if(this.checkUserAuth(headers))
+		{
+			Map<String, String> queryPairs = this.parseURLEncoded(requestBody);		
+		    String username = queryPairs.getOrDefault("username", "");
+		    String password = queryPairs.getOrDefault("password", "");
+		    String name = queryPairs.getOrDefault("name", "");
+		    String phone = queryPairs.getOrDefault("phone", "");
+	
+		    JSONObject jsonObject = new JSONObject();
+			jsonObject.put("username", username);
+			jsonObject.put("name", name);
+			jsonObject.put("password", password);
+			jsonObject.put("phone", phone);
+			jsonObject.put("blocked", false);
+			jsonObject.put("active", true);
+			
+			if(!username.isEmpty())
+			{
+				userAccount.addUser(new User(jsonObject));		
+				userAccount.save();
+				System.out.println("SAVED");
+			}
+		    
+			responseHeaders.add("Location", "../../admin.html");
+		}
+		else
+		{
+			responseHeaders.add("Location", "../../index.html");
+		}
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	
+	
+	
+	@PostMapping(path="/user/update**")
+	public ResponseEntity<byte[]> userUpdate(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		if(this.checkUserAuth(headers))
+		{
+			Map<String, String> queryPairs = this.parseURLEncoded(requestBody);				
+		    String username = queryPairs.getOrDefault("username", "");
+		    String password = queryPairs.getOrDefault("password", "");
+		    String name = queryPairs.getOrDefault("name", "");
+		    String phone = queryPairs.getOrDefault("phone", "");
+		    boolean blocked = queryPairs.getOrDefault("blocked", "").equals("1");
+		    boolean active = queryPairs.getOrDefault("active", "").equals("1");
+	
+		    JSONObject jsonObject = new JSONObject();
+			jsonObject.put("username", username);
+			jsonObject.put("name", name);
+			jsonObject.put("phone", phone);
+			jsonObject.put("blocked", blocked);
+			jsonObject.put("active", active);
+			if(!username.isEmpty())
+			{
+				jsonObject.put("username", username);
+			}
+			if(!password.isEmpty())
+			{
+				jsonObject.put("password", password);
+			}
+			userAccount.updateUser(new User(jsonObject));		
+			userAccount.save();
+		    
+			responseHeaders.add("Location", "/index.html");
+		}
+		else
+		{
+			statusCode = HttpStatus.MOVED_PERMANENTLY;			
+			responseHeaders.add("Location", "/login.html");
+		}
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	
+	@PostMapping(path="/user/remove**")
+	public ResponseEntity<byte[]> userRemove(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	{		
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		if(this.checkUserAuth(headers))
+		{			
+			Map<String, String> queryPairs = this.parseURLEncoded(requestBody);			
+		    String username = queryPairs.getOrDefault("username", "");
+
+		    userAccount.deleteUser(username);		
+			userAccount.save();
+			
+			responseHeaders.add("Location", "/index.html");
+		}
+		else
+		{
+			statusCode = HttpStatus.MOVED_PERMANENTLY;			
+			responseHeaders.add("Location", "/login.html");
+		}		
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}	
+	
+	private Map<String, String> parseURLEncoded(String data)
+	{
+		Map<String, String> queryPairs = new LinkedHashMap<>();
+		String[] pairs = data.split("&");
+		int index = 0;
 	    for (String pair : pairs) 
 	    {
 	        int idx = pair.indexOf("=");
 	        try 
 	        {
-				queryPairs.put(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
+	        	String key = this.fixURLEncodeKey(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), index);
+				queryPairs.put(key, URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
 			} 
 	        catch (UnsupportedEncodingException e) 
 	        {
 				e.printStackTrace();
 			}
+	        index++;
 	    }
-	    String username = queryPairs.getOrDefault("username", "");
-	    String password = queryPairs.getOrDefault("password", "");
-	    
-		String fileName = this.getFileName(request);
-		byte[] responseBody = "".getBytes();
-		try 
-		{
-			responseBody = FileUtil.read(fileName);
-		} 
-		catch (FileNotFoundException e) 
-		{
-			statusCode = HttpStatus.NOT_FOUND;
-		}
-		CookieServer cookie = new CookieServer(headers);
-		cookie.setSessionValue("username", username);
-		cookie.setSessionValue("password", password);
-		cookie.putToHeaders(responseHeaders);
-	
-		
-		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+		return queryPairs;
+	}
+
+	private String fixURLEncodeKey(String key, int index) 
+	{
+		return key.replace("[]", "["+index+"]");
 	}
 
 	@GetMapping(path="/**")
-	public ResponseEntity<byte[]> handleLogin(@RequestHeader HttpHeaders headers, HttpServletRequest request)
+	public ResponseEntity<byte[]> handleDocumentRootGet(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{		
+		return this.serveDocumentRoot(headers, request);
+	}
+	@PostMapping(path="/**")
+	public ResponseEntity<byte[]> handleDocumentRootPost(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	{
+		this.processFeedbackPost(headers, requestBody, request);
+		return this.serveDocumentRoot(headers, request);
+	}
+	
+	public ResponseEntity<byte[]> serveDocumentRoot(HttpHeaders headers, HttpServletRequest request)
+	{
 		HttpHeaders responseHeaders = new HttpHeaders();
 		HttpStatus statusCode = HttpStatus.OK;
 		
@@ -156,9 +411,7 @@ public class RequestHandler {
 		}
 		CookieServer cookie = new CookieServer(headers);
 		
-		
-		WebContent newContent = this.updateContent(fileName, responseHeaders, responseBody, statusCode, cookie);
-		
+		WebContent newContent = this.updateContent(fileName, responseHeaders, responseBody, statusCode, cookie);	
 		
 		responseBody = newContent.getResponseBody();
 		responseHeaders = newContent.getResponseHeaders();
@@ -166,11 +419,158 @@ public class RequestHandler {
 		String contentType = this.getMIMEType(fileName);
 		
 		responseHeaders.add("Content-type", contentType);
+		if(fileName.endsWith(".html"))
+		{
+			cookie.saveSessionData();
+		}
 		cookie.putToHeaders(responseHeaders);
 		
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
-
+	
+	
+	private void processFeedbackPost(HttpHeaders headers, String requestBody, HttpServletRequest request) 
+	{
+		System.out.println(request.getServletPath());
+		System.out.println(requestBody);
+		CookieServer cookie = new CookieServer(headers);
+		String path = request.getServletPath();
+		if(path.equals("/admin.html"))
+		{
+			this.processAdmin(headers, requestBody, request, cookie);
+		}
+		if(path.equals("/account-update.html"))
+		{
+			this.processAccount(headers, requestBody, request, cookie);
+		}
+	}
+	
+	private void processAccount(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+		Map<String, String> query = this.parseURLEncoded(requestBody);
+		String loggedUsername = (String) cookie.getSessionValue("username", "");
+		String phone = query.getOrDefault("phone", "");
+		String password = query.getOrDefault("password", "");
+		String name = query.getOrDefault("name", "");
+		if(query.containsKey("update"))
+		{
+			User user = userAccount.getUser(loggedUsername);
+			user.setName(name);
+			user.setPhone(phone);
+			if(!password.isEmpty())
+			{
+				user.setPassword(password);
+			}
+			userAccount.updateUser(user);
+			userAccount.save();
+		}		
+	}
+	
+	private void processAdmin(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+		Map<String, String> query = this.parseURLEncoded(requestBody);
+		String loggedUsername = (String) cookie.getSessionValue("username", "");
+		if(query.containsKey("delete"))
+		{
+			/**
+			 * Delete
+			 */
+			for (Map.Entry<String, String> entry : query.entrySet()) 
+			{
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if(key.startsWith("id[") && !value.equals(loggedUsername))
+				{
+					userAccount.deleteUser(value);
+				}
+			}
+			userAccount.save();
+		}
+		if(query.containsKey("deactivate"))
+		{
+			/**
+			 * Deactivate
+			 */
+			for (Map.Entry<String, String> entry : query.entrySet()) 
+			{
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if(key.startsWith("id[") && !value.equals(loggedUsername))
+				{
+					userAccount.deactivate(value);
+				}
+			}
+			userAccount.save();
+		}
+		if(query.containsKey("activate"))
+		{
+			/**
+			 * Activate
+			 */
+			for (Map.Entry<String, String> entry : query.entrySet()) 
+			{
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if(key.startsWith("id["))
+				{
+					userAccount.activate(value);
+				}
+			}
+			userAccount.save();
+		}
+		if(query.containsKey("block"))
+		{
+			/**
+			 * Block
+			 */
+			for (Map.Entry<String, String> entry : query.entrySet()) 
+			{
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if(key.startsWith("id[") && !value.equals(loggedUsername))
+				{
+					userAccount.block(value);
+				}
+			}
+			userAccount.save();
+		}
+		if(query.containsKey("unblock"))
+		{
+			/**
+			 * Unblock
+			 */
+			for (Map.Entry<String, String> entry : query.entrySet()) 
+			{
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if(key.startsWith("id["))
+				{
+					userAccount.unblock(value);
+				}
+			}
+			userAccount.save();
+		}
+		if(query.containsKey("update-data"))
+		{
+			String pkID = query.getOrDefault("pk_id", "");
+			String field = query.getOrDefault("field", "");
+			String value = query.getOrDefault("value", "");
+			if(!field.equals("username"))
+			{
+				User user = userAccount.getUser(pkID);
+				if(field.equals("phone"))
+				{
+					user.setPhone(value);
+				}
+				if(field.equals("name"))
+				{
+					user.setName(value);
+				}
+				userAccount.updateUser(user);
+				userAccount.save();
+			}
+		}
+	}
+	
+	
 	private String getMIMEType(String fileName) {
 		String[] arr = fileName.split("\\.");	
 		String ext = arr[arr.length - 1];
@@ -183,21 +583,20 @@ public class RequestHandler {
 		boolean requireLogin = false;
 		String fileSub = "";
 		
-		
 		if(fileName.toLowerCase().endsWith(".html"))
 		{
 			JSONObject authFileInfo = this.processAuthFile(responseBody);
 			requireLogin = authFileInfo.optBoolean("content", false);
-			fileSub = this.getFileName(authFileInfo.optString("file", ""));
+			fileSub = this.getFileName(authFileInfo.optString("data-file", ""));
 		}
-
+		
 		String username = cookie.getSessionData().optString("username", "");
 		String password = cookie.getSessionData().optString("password", "");
-		JSONObject userInfo;
 		if(requireLogin)
 		{
-			userInfo = this.getUserInfo(username);
-			if(!userInfo.optString("password", "").equals(password))
+			responseHeaders.add("Cache-Control", "no-cache");
+			webContent.setResponseHeaders(responseHeaders);
+			if(!userAccount.checkUserAuth(username, password))	
 			{
 				try 
 				{
@@ -206,22 +605,25 @@ public class RequestHandler {
 				} 
 				catch (FileNotFoundException e) 
 				{
-					e.printStackTrace();
 					statusCode = HttpStatus.NOT_FOUND;
 					webContent.setStatusCode(statusCode);
-				}				
+				}	
 			}
 		}
 		return webContent;
 	}
-
-	private JSONObject getUserInfo(String uusername) 
+	
+	private boolean checkUserAuth(HttpHeaders headers)
 	{
-		JSONObject userInfo = new JSONObject();
-		userInfo.put("password", "barujuga");
-		return userInfo;
+		CookieServer cookie = new CookieServer(headers);
+		String username = cookie.getSessionData().optString("username", "");
+		String password = cookie.getSessionData().optString("password", "");
+		return this.checkUserAuth(username, password);
 	}
-
+	private boolean checkUserAuth(String username, String password)
+	{
+		return userAccount.checkUserAuth(username, password);
+	}
 	private JSONObject processAuthFile(byte[] responseBody) 
 	{
 		String responseString = new String(responseBody);
@@ -253,6 +655,9 @@ public class RequestHandler {
 		while(start > -1);
 		return new JSONObject();
 	}
+	
+	
+	
 	private boolean requireLogin(JSONObject xx) {
 		if(xx != null && xx.has("meta"))
 		{
@@ -261,7 +666,7 @@ public class RequestHandler {
 			{
 				String name = metaData.optString("name", "");
 				boolean content = metaData.optBoolean("content", false);
-				if(name.equals("requite-login") && content)
+				if(name.equals("require-login") && content)
 				{
 					return true;
 				}
@@ -281,11 +686,22 @@ public class RequestHandler {
 
 	private String getFileName(HttpServletRequest request) 
 	{
-		return "/static/www"+request.getServletPath();
+		String file = request.getServletPath();
+		if(file == null || file.isEmpty() || file.equals("/"))
+		{
+			file = Config.getDefaultFile();
+		}
+		return "/static/www"+file;
 	}
+	
 	private String getFileName(String request) 
 	{
 		return "/static/www"+request;
+	}
+	
+	private String getBaseDir()
+	{
+		return FileUtil.class.getResource("/").getFile();
 	}
 
 	@GetMapping(path="/api**")

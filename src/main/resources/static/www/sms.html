@@ -7,13 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1; user-scalable=no">
     <meta name="description" content="SMS Gateway">
     <meta name="author" content="Planetbiru">
-    <meta name="require-login" content="true" data-file="/login-form.html">
     <link rel="icon" href="favicon.ico">  
     <title>SMS Gateway</title>
     <link href="lib.assets/css/bootstrap.css" rel="stylesheet">
     <link href="lib.assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
     <link href="lib.assets/css/navbar.css" rel="stylesheet">
-    <link href="lib.assets/css/style.css?_=3707022" rel="stylesheet">
+    <link href="lib.assets/css/style.css?_=1541949" rel="stylesheet">
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <script src="lib.assets/js/ie-emulation-modes-warning.js"></script>
     <script src="lib.assets/js/ie10-viewport-bug-workaround.js"></script>    
@@ -39,15 +38,16 @@
           
                   <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-              <li class="active "><a href="./">Home</a></li>
+              <li class=""><a href="./">Home</a></li>
               <li class=""><a href="ussd.html">USSD</a></li>
-              <li class=""><a href="sms.html">SMS</a></li>
+              <li class="active "><a href="sms.html">SMS</a></li>
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Settings <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                   <li class=""><a href="admin.html">Administrator Setting</a></li>
                   <li class=""><a href="feeder-setting.html">Feeder Setting</a></li>
                   <li class=""><a href="sms-setting.html">SMS Setting</a></li>
+                  <li class=""><a href="gammu-setting.html">Gammu Setting</a></li>
                   <li role="separator" class="divider"></li>
                   <li class="dropdown-header">Other Configs</li>
                   <li><a href="#">Config 1</a></li>
@@ -64,10 +64,23 @@
         </div>
         <!--/.container-fluid -->
       </nav>
-      <div class="phone-page">
-
-
-    </div>
+      <div class="phone-page">    </div>
     <!-- /container -->
 </body>
-</html>
+</html>          <form action="">
+            <div class="receiver-area">
+                <div class="input-label">Receiver</div>
+                <input type="tel" name="receiver" id="receiver" class="input-phone-number">
+            </div>
+
+            <div class="message-area">
+                <div class="input-label">Message</div>
+                <textarea class="text-message" name="message" id="message" cols="30" rows="10" maxlength="150"></textarea>
+            </div>
+            <div class="text-right">
+                <input type="reset" class="btn btn-default" value="Reset">
+                <input type="button" class="btn btn-success" value="Send">
+
+            </div>
+        </form>
+

@@ -34,6 +34,7 @@ public class FileUtil {
 		 } 
 		 catch (IOException ex) 
 		 {
+			 ex.printStackTrace();
 			 throw new FileNotFoundException(ex);
 		 }
 		 return allBytes;

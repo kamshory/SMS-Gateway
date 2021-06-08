@@ -7,13 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1; user-scalable=no">
     <meta name="description" content="SMS Gateway">
     <meta name="author" content="Planetbiru">
-    <meta name="require-login" content="true" data-file="/login-form.html">
     <link rel="icon" href="favicon.ico">  
     <title>SMS Gateway</title>
     <link href="lib.assets/css/bootstrap.css" rel="stylesheet">
     <link href="lib.assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
     <link href="lib.assets/css/navbar.css" rel="stylesheet">
-    <link href="lib.assets/css/style.css?_=3707022" rel="stylesheet">
+    <link href="lib.assets/css/style.css?_=3425897" rel="stylesheet">
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <script src="lib.assets/js/ie-emulation-modes-warning.js"></script>
     <script src="lib.assets/js/ie10-viewport-bug-workaround.js"></script>    
@@ -39,13 +38,13 @@
           
                   <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-              <li class="active "><a href="./">Home</a></li>
+              <li class=""><a href="./">Home</a></li>
               <li class=""><a href="ussd.html">USSD</a></li>
               <li class=""><a href="sms.html">SMS</a></li>
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Settings <span class="caret"></span></a>
                 <ul class="dropdown-menu">
-                  <li class=""><a href="admin.html">Administrator Setting</a></li>
+                  <li class="active "><a href="admin.html">Administrator Setting</a></li>
                   <li class=""><a href="feeder-setting.html">Feeder Setting</a></li>
                   <li class=""><a href="sms-setting.html">SMS Setting</a></li>
                   <li role="separator" class="divider"></li>
@@ -64,9 +63,40 @@
         </div>
         <!--/.container-fluid -->
       </nav>
-      <div class="phone-page">
-
-
+      <div class="phone-page"><h3>Administrator Setting</h3>
+    <form action="user/add" method="post">
+        <table class="two-cols-responsive">
+            <tbody>
+                <tr>
+                <td>Name</td>
+                <td><input type="text" class="form-control" name="name"></td>
+                </tr>
+                <tr>
+                <td>Username</td>
+                <td><input type="text" class="form-control" name="username"></td>
+                </tr>
+                <tr>
+                <td>Phone Number</td>
+                <td><input type="text" class="form-control" name="phone"></td>
+                </tr>
+                <tr>
+                <td>Password</td>
+                <td><input type="password" class="form-control" name="password"></td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="two-cols-responsive">
+            <tbody>
+            <tr>
+                    <td></td>
+                    <td>
+                        <input type="submit" class="btn btn-success" name="add" value="Save" onclick="return confirm('Are you sure you want to save this record')">
+                        <input type="button" class="btn btn-primary" value="Cancel" onclick="window.location='admin.html'">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </form>
     </div>
     <!-- /container -->
 </body>

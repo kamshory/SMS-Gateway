@@ -13,6 +13,7 @@ public class Config {
 	private static String portName = "COM3";
 	private static String sessionName = "SMSSESSID";
 	private static long reconnectDelay = 5000;
+	private static String defaultFile = "/index.html";
 
 	public static String getPortName() {
 		return portName;
@@ -57,6 +58,12 @@ public class Config {
 	}
 	public static void setReconnectDelay(long reconnectDelay) {
 		Config.reconnectDelay = reconnectDelay;
+	}
+	public static String getDefaultFile() {
+		return defaultFile;
+	}
+	public static void setDefaultFile(String defaultFile) {
+		Config.defaultFile = defaultFile;
 	}
 
 

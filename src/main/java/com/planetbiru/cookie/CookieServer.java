@@ -2,6 +2,9 @@ package com.planetbiru.cookie;
 
 import java.io.*;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +14,8 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.net.URLCodec;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 
 import com.planetbiru.util.FileNotFoundException;
@@ -18,6 +23,7 @@ import com.planetbiru.util.FileUtil;
 import com.planetbiru.util.Utility;
 
 public class CookieServer {
+	private static final Logger logger = LoggerFactory.getLogger(CookieServer.class);
 	private String sessionName = "SMSSESSID";
 	private String sessionID = Utility.md5(System.currentTimeMillis()+"");
 	private Map<String, CookieItem> cookieItem = new HashMap<>();
@@ -55,8 +61,24 @@ public class CookieServer {
 		{
 			CookieItem cookie = new CookieItem(this.sessionName, this.sessionID);
 			this.cookieItem.put(this.sessionName, cookie);
+		}	
+	}
+	
+	public void destroySession()
+	{
+		this.sessionData = new JSONObject();
+		String sessionFile = this.getSessionFile();
+		File file = new File(sessionFile);
+		Path path = Paths.get(file.getPath());
+		try 
+		{
+			Files.delete(path);
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
-		
 	}
 	private void parseCookie(String rawCookie) {
 		URLCodec urlCodec = new URLCodec();
@@ -80,12 +102,7 @@ public class CookieServer {
 	        CookieItem cookie = new CookieItem(cookieName, cookieValue);
 	        list.put(cookieName, cookie);
 		}
-		this.cookieItem = list;
-		if(this.cookieItem.containsKey(this.sessionName))
-		{
-			this.sessionID = this.cookieItem.get(this.sessionName).getValue();
-		}
-		this.setSessionData(this.readSessionData());
+		this.setCookie(list);
 	}
 	private void parseCookie(HttpHeaders headers)
 	{
@@ -118,20 +135,26 @@ public class CookieServer {
 				}
 			}
 		}
-		this.cookieItem = list;		
+		this.setCookie(list);
+	}
+	private void setCookie(Map<String, CookieItem> list)
+	{
+		this.cookieItem = list;
 		if(this.cookieItem.containsKey(this.sessionName))
 		{
 			this.sessionID = this.cookieItem.get(this.sessionName).getValue();
 		}
-		this.setSessionData(this.readSessionData());
+		this.setSessionData(this.readSessionData());		
 	}
 
-	public void setCookieItem(Map<String, CookieItem> cookieItem) {
+	public void setCookieItem(Map<String, CookieItem> cookieItem) 
+	{
 		this.cookieItem = cookieItem;	
 	}
 	public void setValue(String name, String value)
 	{
-		for (Map.Entry<String, CookieItem> entry : this.cookieItem.entrySet()) {
+		for (Map.Entry<String, CookieItem> entry : this.cookieItem.entrySet()) 
+		{
 			String key = entry.getKey();
 			if(key.equals(name))
 			{
@@ -191,7 +214,8 @@ public class CookieServer {
 			}
 		}
 	}
-	public void putToHeaders(HttpHeaders responseHeaders) {
+	public void putToHeaders(HttpHeaders responseHeaders) 
+	{
 		for (Map.Entry<String, CookieItem> entry : this.cookieItem.entrySet()) {
 			String key = entry.getKey();
 			if(key.equals(this.sessionName))
@@ -200,9 +224,38 @@ public class CookieServer {
 			}
 			responseHeaders.add("Set-Cookie", ((CookieItem) entry.getValue()).toString());
 		}
-		this.saveSessionData();
 	}
-	private void saveSessionData() {
+	public void clearFile(File directory)
+    {
+        File[] list = directory.listFiles();
+        if(list != null)
+        {
+	        for(File file : list)
+	        {
+	            if(file.isDirectory())
+	            {
+	            	clearFile(file);
+	            }
+	            else 
+	            {
+	            	long lasModifued = file.lastModified();
+	            	if(lasModifued < (System.currentTimeMillis() - this.sessionLifetime))
+	            	{
+	            		Path path = Paths.get(file.getPath());
+	            		try 
+	            		{
+							Files.delete(path);
+						} 
+	            		catch (IOException e) 
+	            		{
+							logger.error(e.getMessage());
+						}
+	            	}
+	            }
+	        }
+        }
+    }
+	public void saveSessionData() {
 		String sessionFile = this.getSessionFile();
 		try 
 		{
@@ -227,13 +280,14 @@ public class CookieServer {
 		} 
 		catch (IOException e) 
 		{
-			e.printStackTrace();
 			/**
 			 * Do nothing
 			 */
 		}
 	}
 	private JSONObject readSessionData() {
+		File dir = new File(this.getSessionDir());
+		this.clearFile(dir);
 		JSONObject jsonData = new JSONObject();
 		String sessionFile = this.getSessionFile();
 		try 
@@ -257,12 +311,29 @@ public class CookieServer {
 		String dir = FileUtil.class.getResource("/").getFile();
 		return dir+"/static/session/"+this.sessionID;
 	}
+	private String getSessionDir() {
+		String dir = FileUtil.class.getResource("/").getFile();
+		return dir+"/static/session";
+	}
 	public void setSessionValue(String sessionKey, Object sessionValue) {
 		this.getSessionData().put(sessionKey, sessionValue);		
 	}
-	public Object getSessionValue(String sessionKey)
+	public Object getSessionValue(String sessionKey, Object defaultValue)
 	{
-		return this.getSessionData().get(sessionKey);
+		Object value = null;
+		try 
+		{
+			value = this.getSessionData().get(sessionKey);
+			if(value == null)
+			{
+				value = defaultValue;
+			}
+		}
+		catch(JSONException e)
+		{
+			value = defaultValue;
+		}
+		return value;
 	}
 	public JSONObject getSessionData() {
 		return sessionData;
