@@ -178,7 +178,6 @@ public class RequestHandler {
 		else
 		{
 			statusCode = HttpStatus.UNAUTHORIZED;			
-			responseHeaders.add("Location", "/index.html");
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
@@ -204,7 +203,6 @@ public class RequestHandler {
 		else
 		{
 			statusCode = HttpStatus.UNAUTHORIZED;			
-			responseHeaders.add("Location", "/index.html");
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
@@ -227,7 +225,6 @@ public class RequestHandler {
 		else
 		{
 			statusCode = HttpStatus.UNAUTHORIZED;			
-			responseHeaders.add("Location", "/index.html");
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
@@ -278,7 +275,7 @@ public class RequestHandler {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
-		HttpStatus statusCode = HttpStatus.OK;
+		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
 		if(this.checkUserAuth(headers))
 		{
 			Map<String, String> queryPairs = this.parseURLEncoded(requestBody);				
@@ -306,13 +303,8 @@ public class RequestHandler {
 			userAccount.updateUser(new User(jsonObject));		
 			userAccount.save();
 		    
-			responseHeaders.add("Location", "/index.html");
 		}
-		else
-		{
-			statusCode = HttpStatus.MOVED_PERMANENTLY;			
-			responseHeaders.add("Location", "/login.html");
-		}
+		responseHeaders.add("Location", "../../admin.html");
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
 		responseHeaders.add("Cache-Control", "no-cache");
@@ -325,7 +317,7 @@ public class RequestHandler {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
-		HttpStatus statusCode = HttpStatus.OK;
+		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
 		if(this.checkUserAuth(headers))
 		{			
 			Map<String, String> queryPairs = this.parseURLEncoded(requestBody);			
@@ -333,14 +325,8 @@ public class RequestHandler {
 
 		    userAccount.deleteUser(username);		
 			userAccount.save();
-			
-			responseHeaders.add("Location", "/index.html");
 		}
-		else
-		{
-			statusCode = HttpStatus.MOVED_PERMANENTLY;			
-			responseHeaders.add("Location", "/login.html");
-		}		
+		responseHeaders.add("Location", "../../admin.html");
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
 		responseHeaders.add("Cache-Control", "no-cache");
