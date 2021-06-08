@@ -257,7 +257,6 @@ public class GSM {
         {
             return false;
         }
-
     }
 
     /**

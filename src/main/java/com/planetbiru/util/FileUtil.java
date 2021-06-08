@@ -38,7 +38,8 @@ public class FileUtil {
 			 throw new FileNotFoundException(ex);
 		 }
 		 return allBytes;
-	 }
+	}
+	
 	public static byte[] read(String fileName) throws FileNotFoundException
 	{
 		byte[] allBytes = null;

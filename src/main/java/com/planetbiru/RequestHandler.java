@@ -56,8 +56,14 @@ public class RequestHandler {
 	private String wsClientPassword = "4lt0@1234";
 
 	private String sessionName;
-	
+
+	private String feederSettingPath = "/static/data/feeder/feeder.json";
+	private String smsSettingPath = "/static/data/sms/sms.json";
+
 	private ServerConfig mime = new ServerConfig();
+	
+	private int cacheLifetime = 2400;
+
 	
 	@PostConstruct
 	public void init()
@@ -207,6 +213,56 @@ public class RequestHandler {
 		responseHeaders.add("Cache-Control", "no-cache");
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
+	
+	@GetMapping(path="/feeder-setting/get")
+	public ResponseEntity<byte[]> handleFeederSetting(@RequestHeader HttpHeaders headers, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		if(this.checkUserAuth(headers))
+		{
+			FeederSetting feederSetting = new FeederSetting();
+			feederSetting.load(feederSettingPath);
+			String list = feederSetting.toString();
+			responseBody = list.getBytes();
+		}
+		else
+		{
+			statusCode = HttpStatus.UNAUTHORIZED;			
+		}
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	@GetMapping(path="/sms-setting/get")
+	public ResponseEntity<byte[]> handleSMSSetting(@RequestHeader HttpHeaders headers, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		if(this.checkUserAuth(headers))
+		{
+			SMSSetting smsSetting = new SMSSetting();
+			smsSetting.load(smsSettingPath);
+			String list = smsSetting.toString();
+			responseBody = list.getBytes();
+		}
+		else
+		{
+			statusCode = HttpStatus.UNAUTHORIZED;			
+		}
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	
 	@GetMapping(path="/user/detail/{username}")
 	public ResponseEntity<byte[]> handleUserGet(@RequestHeader HttpHeaders headers, @PathVariable(value="username") String username, HttpServletRequest request)
 	{
@@ -394,10 +450,16 @@ public class RequestHandler {
 		String contentType = this.getMIMEType(fileName);
 		
 		responseHeaders.add("Content-type", contentType);
+		
 		if(fileName.endsWith(".html"))
 		{
 			cookie.saveSessionData();
 		}
+		else
+		{
+			responseHeaders.add("Cache-Control", "public, max-age="+cacheLifetime+", immutable");
+		}
+		
 		cookie.putToHeaders(responseHeaders);
 		
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
@@ -406,8 +468,6 @@ public class RequestHandler {
 	
 	private void processFeedbackPost(HttpHeaders headers, String requestBody, HttpServletRequest request) 
 	{
-		System.out.println(request.getServletPath());
-		System.out.println(requestBody);
 		if(this.checkUserAuth(headers))
 		{
 			CookieServer cookie = new CookieServer(headers);
@@ -420,11 +480,171 @@ public class RequestHandler {
 			{
 				this.processAccount(headers, requestBody, request, cookie);
 			}
+			if(path.equals("/feeder-setting.html"))
+			{
+				this.processFeederSetting(headers, requestBody, request, cookie);
+			}
+			if(path.equals("/sms-setting.html"))
+			{
+				this.processSMSSetting(headers, requestBody, request, cookie);
+			}
 			if(path.equals("/sms.html"))
 			{
 				this.processSMS(headers, requestBody, request, cookie);
 			}
 		}
+	}
+	
+	private void processSMSSetting(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+		Map<String, String> query = this.parseURLEncoded(requestBody);
+		if(query.containsKey("save_sms_setting"))
+		{
+			String connectionType = query.getOrDefault("connection_type", "");			
+			String smsCenter = query.getOrDefault("sms_center", "");		
+			int incommingInterval = 0;
+			try
+			{
+				String incommingInt = query.getOrDefault("incomming_interval", "0");
+				incommingInt = incommingInt.replaceAll("[^\\d]", "");
+				if(incommingInt.isEmpty())
+				{
+					incommingInt = "0";
+				}
+				incommingInterval = Integer.parseInt(incommingInt);		
+			}
+			catch(NumberFormatException e)
+			{
+				/**
+				 * Do nothing
+				 */
+			}
+			
+			int timeRange = 0;	
+			try
+			{
+				String tmRange = query.getOrDefault("time_range", "0");
+				tmRange = tmRange.replaceAll("[^\\d]", "");
+				if(tmRange.isEmpty())
+				{
+					tmRange = "0";
+				}
+				timeRange = Integer.parseInt(tmRange);		
+			}
+			catch(NumberFormatException e)
+			{
+				/**
+				 * Do nothing
+				 */
+			}
+			
+			int maxPerTimeRange = 0;
+			try
+			{
+				String maxInRange = query.getOrDefault("max_per_time_range", "0");
+				maxInRange = maxInRange.replaceAll("[^\\d]", "");
+				if(maxInRange.isEmpty())
+				{
+					maxInRange = "0";
+				}
+				maxPerTimeRange = Integer.parseInt(maxInRange);		
+			}
+			catch(NumberFormatException e)
+			{
+				/**
+				 * Do nothing
+				 */
+			}
+			
+			SMSSetting smsSetting = new SMSSetting();
+			smsSetting.setConnectionType(connectionType);
+			smsSetting.setSmsCenter(smsCenter);
+			smsSetting.setIncommingInterval(incommingInterval);
+			smsSetting.setTimeRange(timeRange);
+			smsSetting.setMaxPerTimeRange(maxPerTimeRange);			
+			
+			smsSetting.save(smsSettingPath);			
+		}		
+	}
+	
+	private void processFeederSetting(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+		Map<String, String> query = this.parseURLEncoded(requestBody);
+		if(query.containsKey("save_feeder_setting"))
+		{
+			String feederType = query.getOrDefault("feeder_type", "");			
+			boolean feederSSL = query.getOrDefault("feeder_ssl", "").equals("1");		
+			String feederAddress = query.getOrDefault("feeder_address", "");		
+			int feederPort = 0;
+			try
+			{
+				String port = query.getOrDefault("feeder_port", "0");
+				port = port.replaceAll("[^\\d]", "");
+				if(port.isEmpty())
+				{
+					port = "0";
+				}
+				feederPort = Integer.parseInt(port);		
+			}
+			catch(NumberFormatException e)
+			{
+				/**
+				 * Do nothing
+				 */
+			}
+			String feederPath = query.getOrDefault("feeder_path", "");		
+			String feederUsername = query.getOrDefault("feeder_username", "");		
+			String feederPassword = query.getOrDefault("feeder_password", "");		
+			String feederChannel = query.getOrDefault("feeder_channel", "");
+			
+			int feederTimeout = 0;	
+			try
+			{
+				String timeout = query.getOrDefault("feeder_timeout", "0");
+				timeout = timeout.replaceAll("[^\\d]", "");
+				if(timeout.isEmpty())
+				{
+					timeout = "0";
+				}
+				feederTimeout = Integer.parseInt(timeout);		
+			}
+			catch(NumberFormatException e)
+			{
+				/**
+				 * Do nothing
+				 */
+			}
+			
+			int feederRefresh = 0;
+			try
+			{
+				String refresh = query.getOrDefault("feeder_refresh", "0");
+				refresh = refresh.replaceAll("[^\\d]", "");
+				if(refresh.isEmpty())
+				{
+					refresh = "0";
+				}
+				feederRefresh = Integer.parseInt(refresh);		
+			}
+			catch(NumberFormatException e)
+			{
+				/**
+				 * Do nothing
+				 */
+			}
+			
+			FeederSetting feederSetting = new FeederSetting();
+			feederSetting.setFeederType(feederType);
+			feederSetting.setFeederSSL(feederSSL);
+			feederSetting.setFeederAddress(feederAddress);
+			feederSetting.setFeederPort(feederPort);
+			feederSetting.setFeederPath(feederPath);
+			feederSetting.setFeederUsername(feederUsername);
+			feederSetting.setFeederPassword(feederPassword);
+			feederSetting.setFeederChannel(feederChannel);
+			feederSetting.setFeederTimeout(feederTimeout);
+			feederSetting.setFeederRefresh(feederRefresh);			
+			
+			feederSetting.save(feederSettingPath);			
+		}		
 	}
 	
 	private void processSMS(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
@@ -560,8 +780,7 @@ public class RequestHandler {
 				userAccount.save();
 			}
 		}
-	}
-	
+	}	
 	
 	private String getMIMEType(String fileName) 
 	{

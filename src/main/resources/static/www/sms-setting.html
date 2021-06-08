@@ -7,12 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1; user-scalable=no">
     <meta name="description" content="SMS Gateway">
     <meta name="author" content="Planetbiru">
+    <meta name="require-login" content="true" data-file="/login-form.html">
     <link rel="icon" href="favicon.ico">  
     <title>SMS Gateway</title>
     <link href="lib.assets/css/bootstrap.css" rel="stylesheet">
     <link href="lib.assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
     <link href="lib.assets/css/navbar.css" rel="stylesheet">
-    <link href="lib.assets/css/style.css?_=7887359" rel="stylesheet">
+    <link href="lib.assets/css/style.css" rel="stylesheet">
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <script src="lib.assets/js/ie-emulation-modes-warning.js"></script>
     <script src="lib.assets/js/ie10-viewport-bug-workaround.js"></script>    
@@ -79,17 +80,17 @@
               </tr>
               <tr>
                 <td>Minimum Interval (Second)</td>
-                <td><input type="number" name="incomming_interval" id="incomming_interval" value="120">	
+                <td><input type="number" name="incomming_interval" id="incomming_interval" value="">	
                 </td>
               </tr>
               <tr>
                 <td>Time Range (Second)</td>
-                <td><input type="number" name="time_range" id="time_range" value="120">	
+                <td><input type="number" name="time_range" id="time_range" value="">	
                 </td>
               </tr>
               <tr>
                 <td>Maximum Per Time Range</td>
-                <td><input type="number" name="max_per_time_range" id="max_per_time_range" value="240">	
+                <td><input type="number" name="max_per_time_range" id="max_per_time_range" value="">	
                 </td>
               </tr>
               <tr>
@@ -104,6 +105,22 @@
           </table>
        
         </form>
+        <script type="text/javascript">
+            $(document).ready(function(e){
+                $.ajax({
+                    type:"GET",
+                    url:"sms-setting/get",
+                    dataType:"json",
+                    success:function(data){
+                        $('input[name="connection_type"]').val(data.connectionType);
+                        $('input[name="sms_center"]').val(data.smsCenter);
+                        $('input[name="incomming_interval"]').val(data.incommingInterval+"");
+                        $('input[name="time_range"]').val(data.timeRange+"");
+                        $('input[name="max_per_time_range"]').val(data.maxPerTimeRange+"");
+                    }
+                });
+            });
+        </script>
 
     
     </div>
