@@ -23,12 +23,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.planetbiru.config.Config;
 import com.planetbiru.config.ServerConfig;
-import com.planetbiru.cookie.CookieItem;
 import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.user.User;
@@ -64,10 +62,12 @@ public class RequestHandler {
 	@PostConstruct
 	public void init()
 	{
-		initConfig();		
-		//initSerial();
-		//initWSClient();
-		
+		initConfig();
+		if(Config.isServiceEnabled())
+		{
+			initSerial();
+			initWSClient();
+		}
 		try 
 		{
 			mime = new ServerConfig("/static/config/config.ini");
@@ -263,22 +263,14 @@ public class RequestHandler {
 			{
 				userAccount.addUser(new User(jsonObject));		
 				userAccount.save();
-				System.out.println("SAVED");
-			}
-		    
-			responseHeaders.add("Location", "../../admin.html");
+			}		    
 		}
-		else
-		{
-			responseHeaders.add("Location", "../../index.html");
-		}
+		responseHeaders.add("Location", "../../admin.html");
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
 		responseHeaders.add("Cache-Control", "no-cache");
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
-	
-	
 	
 	@PostMapping(path="/user/update**")
 	public ResponseEntity<byte[]> userUpdate(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
@@ -571,13 +563,15 @@ public class RequestHandler {
 	}
 	
 	
-	private String getMIMEType(String fileName) {
+	private String getMIMEType(String fileName) 
+	{
 		String[] arr = fileName.split("\\.");	
 		String ext = arr[arr.length - 1];
 		return 	mime.getString("MIME", ext, "");
 	}
 
-	private WebContent updateContent(String fileName, HttpHeaders responseHeaders, byte[] responseBody, HttpStatus statusCode, CookieServer cookie) {
+	private WebContent updateContent(String fileName, HttpHeaders responseHeaders, byte[] responseBody, HttpStatus statusCode, CookieServer cookie) 
+	{
 		String contentType = this.getMIMEType(fileName);
 		WebContent webContent = new WebContent(fileName, responseHeaders, responseBody, statusCode, cookie, contentType);
 		boolean requireLogin = false;
@@ -620,16 +614,19 @@ public class RequestHandler {
 		String password = cookie.getSessionData().optString("password", "");
 		return this.checkUserAuth(username, password);
 	}
+	
 	private boolean checkUserAuth(String username, String password)
 	{
 		return userAccount.checkUserAuth(username, password);
 	}
+	
 	private JSONObject processAuthFile(byte[] responseBody) 
 	{
 		String responseString = new String(responseBody);
 		int start = 0;
 		int end = 0;
-		do {
+		do 
+		{
 			start = responseString.toLowerCase().indexOf("<meta ", end);
 			end = responseString.toLowerCase().indexOf(">", start);
 			if(start >-1 && end >-1 && end < responseString.length())
@@ -655,8 +652,6 @@ public class RequestHandler {
 		while(start > -1);
 		return new JSONObject();
 	}
-	
-	
 	
 	private boolean requireLogin(JSONObject xx) {
 		if(xx != null && xx.has("meta"))
@@ -699,11 +694,6 @@ public class RequestHandler {
 		return "/static/www"+request;
 	}
 	
-	private String getBaseDir()
-	{
-		return FileUtil.class.getResource("/").getFile();
-	}
-
 	@GetMapping(path="/api**")
 	public ResponseEntity<String> handleGet2(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{

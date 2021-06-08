@@ -14,6 +14,7 @@ public class Config {
 	private static String sessionName = "SMSSESSID";
 	private static long reconnectDelay = 5000;
 	private static String defaultFile = "/index.html";
+	private static boolean serviceEnabled = false;
 
 	public static String getPortName() {
 		return portName;
@@ -64,6 +65,12 @@ public class Config {
 	}
 	public static void setDefaultFile(String defaultFile) {
 		Config.defaultFile = defaultFile;
+	}
+	public static boolean isServiceEnabled() {
+		return serviceEnabled;
+	}
+	public static void setServiceEnabled(boolean serviceEnabled) {
+		Config.serviceEnabled = serviceEnabled;
 	}
 
 
