@@ -90,8 +90,7 @@ public class UserAccount {
 			return false;
 		}
 		User user = this.getUser(username);
-		boolean valid = user.getPassword().equals(password);
-		return valid;
+		return user.getPassword().equals(password);
 	}
 	
 	@PostConstruct

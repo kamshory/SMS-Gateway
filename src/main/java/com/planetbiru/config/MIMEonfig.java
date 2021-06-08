@@ -11,16 +11,16 @@ import java.util.regex.Pattern;
 
 import com.planetbiru.util.FileUtil;
 
-public class ServerConfig {
+public class MIMEonfig {
 	private Pattern mSection = Pattern.compile("\\s*\\[([^]]*)\\]\\s*");
 	private Pattern mKeyValue = Pattern.compile("\\s*([^=]*)=(.*)");
 	private Map <String, Map<String, String>> mEntries = new HashMap<>();
 
-	public ServerConfig(String path) throws IOException {
+	public MIMEonfig(String path) throws IOException {
 	    load(path);
 	}
 
-	public ServerConfig() {
+	public MIMEonfig() {
 		/**
 		 * Do nothing
 		 */

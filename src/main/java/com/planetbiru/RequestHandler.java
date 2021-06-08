@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.planetbiru.config.Config;
-import com.planetbiru.config.ServerConfig;
+import com.planetbiru.config.MIMEonfig;
 import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.user.User;
@@ -59,8 +59,9 @@ public class RequestHandler {
 
 	private String feederSettingPath = "/static/data/feeder/feeder.json";
 	private String smsSettingPath = "/static/data/sms/sms.json";
+	private String mimeSettingPath = "/static/config/config.ini";
 
-	private ServerConfig mime = new ServerConfig();
+	private MIMEonfig mime = new MIMEonfig();
 	
 	private int cacheLifetime = 2400;
 
@@ -76,7 +77,7 @@ public class RequestHandler {
 		}
 		try 
 		{
-			mime = new ServerConfig("/static/config/config.ini");
+			mime = new MIMEonfig(mimeSettingPath);
 		} 
 		catch (IOException e) 
 		{
@@ -189,7 +190,6 @@ public class RequestHandler {
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 	
-	
 	@GetMapping(path="/account/self")
 	public ResponseEntity<byte[]> handleSelfAccount(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{
@@ -238,6 +238,7 @@ public class RequestHandler {
 		responseHeaders.add("Cache-Control", "no-cache");
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
+	
 	@GetMapping(path="/sms-setting/get")
 	public ResponseEntity<byte[]> handleSMSSetting(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{
@@ -463,8 +464,7 @@ public class RequestHandler {
 		cookie.putToHeaders(responseHeaders);
 		
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
-	}
-	
+	}	
 	
 	private void processFeedbackPost(HttpHeaders headers, String requestBody, HttpServletRequest request) 
 	{
