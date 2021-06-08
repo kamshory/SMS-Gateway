@@ -64,10 +64,8 @@
         </div>
         <!--/.container-fluid -->
       </nav>
-      <div class="phone-page">    </div>
-    <!-- /container -->
-</body>
-</html>          <form action="">
+      <div class="phone-page">   
+        <form action="sms.html" method="POST">
             <div class="receiver-area">
                 <div class="input-label">Receiver</div>
                 <input type="tel" name="receiver" id="receiver" class="input-phone-number">
@@ -79,8 +77,12 @@
             </div>
             <div class="text-right">
                 <input type="reset" class="btn btn-default" value="Reset">
-                <input type="button" class="btn btn-success" value="Send">
-
+                <input type="submit" class="btn btn-success" value="Send" name="send">
             </div>
-        </form>
+        </form>      
+    </div>
+    <!-- /container -->
+</body>
+</html>          
+
 

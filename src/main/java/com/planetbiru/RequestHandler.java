@@ -138,14 +138,11 @@ public class RequestHandler {
 		
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-
 		byte[] responseBody = res.toString().getBytes();
-
 		HttpStatus statusCode = HttpStatus.OK;
 		
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
-	}	
-	
+	}
 	
 	@GetMapping(path="/logout.html")
 	public ResponseEntity<byte[]> handleLogout(@RequestHeader HttpHeaders headers, HttpServletRequest request)
@@ -411,16 +408,33 @@ public class RequestHandler {
 	{
 		System.out.println(request.getServletPath());
 		System.out.println(requestBody);
-		CookieServer cookie = new CookieServer(headers);
-		String path = request.getServletPath();
-		if(path.equals("/admin.html"))
+		if(this.checkUserAuth(headers))
 		{
-			this.processAdmin(headers, requestBody, request, cookie);
+			CookieServer cookie = new CookieServer(headers);
+			String path = request.getServletPath();
+			if(path.equals("/admin.html"))
+			{
+				this.processAdmin(headers, requestBody, request, cookie);
+			}
+			if(path.equals("/account-update.html"))
+			{
+				this.processAccount(headers, requestBody, request, cookie);
+			}
+			if(path.equals("/sms.html"))
+			{
+				this.processSMS(headers, requestBody, request, cookie);
+			}
 		}
-		if(path.equals("/account-update.html"))
+	}
+	
+	private void processSMS(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+		Map<String, String> query = this.parseURLEncoded(requestBody);
+		if(query.containsKey("send"))
 		{
-			this.processAccount(headers, requestBody, request, cookie);
-		}
+			String receiver = query.getOrDefault("receiver", "");			
+			String message = query.getOrDefault("message", "");		
+			smsService.sendSMS(receiver, message);
+		}		
 	}
 	
 	private void processAccount(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {

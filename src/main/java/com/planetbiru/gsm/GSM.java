@@ -189,6 +189,8 @@ public class GSM {
      */
     public String sendSMS(String recipient, String message) 
     {
+    	recipient = recipient.trim();
+    	message = message.trim();
     	System.out.println("Send SMS to "+recipient+" "+message+" port "+this.serialPort.toString()+" "+this.portName);
         executeAT("ATE0", 1);
         executeAT("AT+CSCS=\"GSM\"", 1);
