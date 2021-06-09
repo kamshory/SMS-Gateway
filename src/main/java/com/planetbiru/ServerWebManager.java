@@ -173,6 +173,7 @@ public class ServerWebManager {
 		cookie.setSessionValue(JsonKey.PASSWORD, password);
 		try
 		{
+			userAccount.load();
 			if(userAccount.checkUserAuth(username, password))
 			{
 				userAccount.updateLastActive(username);
@@ -203,7 +204,7 @@ public class ServerWebManager {
 		byte[] responseBody = "".getBytes();
 		cookie.destroySession();
 		cookie.putToHeaders(responseHeaders);
-
+		userAccount.load();
 		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
 		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		responseHeaders.add(ConstantString.LOCATION, "/");

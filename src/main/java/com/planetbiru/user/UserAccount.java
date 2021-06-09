@@ -34,13 +34,16 @@ public class UserAccount {
 	}
 	public boolean isEmpty()
 	{
+		if(this.users.isEmpty())
+		{
+			this.load();
+		}
 		return this.users.isEmpty();
 	}
 	public void addUser(String username, JSONObject jsonObject) 
 	{
 		User user = new User(jsonObject);
 		this.users.put(username, user);
-		
 	}
 	
 	public void addUser(JSONObject jsonObject) {
