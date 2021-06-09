@@ -43,7 +43,7 @@ public class ServerWebSocket {
 	@Value("${sms.path.setting.user}")
 	private String userSettingPath;
 
-	UserAccount userAccount = new UserAccount();
+	private UserAccount userAccount;
 	
 	private Session session;
 	private String clientIP = "";

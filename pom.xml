@@ -17,7 +17,6 @@
 		<java.version>1.8</java.version>
 	</properties>
 	<dependencies>
-	
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
@@ -74,74 +73,13 @@
                 </exclusion>
             </exclusions>
 		</dependency>
+		
 		<dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.json/json -->
-		<dependency>
-		    <groupId>org.json</groupId>
-		    <artifactId>json</artifactId>
-		    <version>20200518</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-log4j2</artifactId>
-		</dependency>
-		
-		
-		<dependency>
-		    <groupId>commons-net</groupId>
-		    <artifactId>commons-net</artifactId>
-		    <version>3.6</version>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/com.jcraft/jsch -->
-		<dependency>
-		    <groupId>com.jcraft</groupId>
-		    <artifactId>jsch</artifactId>
-		    <version>0.1.55</version>
-		</dependency>
-		
-		<dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-vfs2</artifactId>
-		    <version>2.4</version>
-		</dependency>
-		
-		<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
-        
         <dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-amqp</artifactId>
-		</dependency>
-        <dependency>
-			<groupId>org.springframework.amqp</groupId>
-			<artifactId>spring-rabbit-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		
-		
-		<dependency>
-		   <groupId>com.fazecast</groupId>
-		   <artifactId>jSerialComm</artifactId>
-		   <version>[2.0.0,3.0.0)</version>
-		</dependency>
-		
-		<dependency>
-		    <groupId>com.google.guava</groupId>
-		    <artifactId>guava</artifactId>
-		    <version>19.0</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-log4j2</artifactId>
-		</dependency>
-		<dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-framework-bom</artifactId>
             <version>4.0.3.RELEASE</version>
@@ -154,6 +92,10 @@
 		    <artifactId>json</artifactId>
 		    <version>20200518</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
 		
 		
 		<dependency>
@@ -174,12 +116,6 @@
 		    <artifactId>commons-vfs2</artifactId>
 		    <version>2.4</version>
 		</dependency>
-
-		<dependency>
-		    <groupId>commons-net</groupId>
-		    <artifactId>commons-net</artifactId>
-		    <version>3.6</version>
-		</dependency>
 		
 		<dependency>
             <groupId>org.springframework.boot</groupId>
@@ -194,15 +130,40 @@
 			<groupId>org.springframework.amqp</groupId>
 			<artifactId>spring-rabbit-test</artifactId>
 			<scope>test</scope>
-		</dependency>		
+		</dependency>	
 		
+		<dependency>
+		   <groupId>com.fazecast</groupId>
+		   <artifactId>jSerialComm</artifactId>
+		   <version>[2.0.0,3.0.0)</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.google.guava</groupId>
+		    <artifactId>guava</artifactId>
+		    <version>19.0</version>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/com.neovisionaries/nv-websocket-client -->
 		<dependency>
 		    <groupId>com.neovisionaries</groupId>
 		    <artifactId>nv-websocket-client</artifactId>
 		    <version>2.14</version>
 		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api -->
+		<dependency>
+		    <groupId>javax.websocket</groupId>
+		    <artifactId>javax.websocket-api</artifactId>
+		    <version>1.1</version>
+		    <scope>provided</scope>
+		</dependency>
 
+		<dependency>
+		     <groupId>org.glassfish.tyrus.bundles</groupId>
+		     <artifactId>tyrus-standalone-client</artifactId>
+		     <version>1.9</version>
+		</dependency>
 		
 		
 	</dependencies>

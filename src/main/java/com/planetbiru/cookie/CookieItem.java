@@ -48,6 +48,11 @@ public class CookieItem {
 		this.httpOnly = httpOnly;
 	}
 	
+	public CookieItem() {
+		/**
+		 * Do nothing
+		 */
+	}
 	public String getName() {
 		return name;
 	}

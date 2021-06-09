@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.planetbiru.config.Config;
-import com.planetbiru.config.MIMEonfig;
+import com.planetbiru.config.ResourceConfig;
 import com.planetbiru.cons.ConstantString;
 import com.planetbiru.cons.JsonKey;
 import com.planetbiru.cookie.CookieServer;
@@ -48,13 +48,13 @@ public class ServerWebManager {
 	@Autowired
 	WebSocketClient wsClient;
 	
-	UserAccount userAccount = new UserAccount();
+	UserAccount userAccount;
 
 	@Value("${sms.connection.type}")
 	private String portName;
 
 	@Value("${sms.ws.endpoint}")
-	private String wsClientEndpoint = "ws://localhost:8888/ws";
+	private String wsClientEndpoint;
 
 	@Value("${sms.ws.username}")
 	private String wsClientUsername;
@@ -69,7 +69,7 @@ public class ServerWebManager {
 	private int cacheLifetime;
 
 	@Value("${sms.web.document.root}")
-	private String documentRoot = "/static/www";
+	private String documentRoot;
 
 	@Value("${sms.path.setting.feeder}")
 	private String feederSettingPath;
@@ -80,7 +80,7 @@ public class ServerWebManager {
 	@Value("${sms.path.setting.all}")
 	private String mimeSettingPath;	
 
-	private MIMEonfig mime = new MIMEonfig();
+	private ResourceConfig mime = new ResourceConfig();
 	
 	@Value("${sms.path.setting.user}")
 	private String userSettingPath;
@@ -99,7 +99,7 @@ public class ServerWebManager {
 		}
 		try 
 		{
-			mime = new MIMEonfig(mimeSettingPath);
+			mime = new ResourceConfig(mimeSettingPath);
 		} 
 		catch (IOException e) 
 		{
@@ -490,7 +490,11 @@ public class ServerWebManager {
 		}
 		else
 		{
-			responseHeaders.add(ConstantString.CACHE_CONTROL, "public, max-age="+cacheLifetime+", immutable");
+			int lifetime = this.getCacheLifetime(fileName);
+			if(lifetime > 0)
+			{
+				responseHeaders.add(ConstantString.CACHE_CONTROL, "public, max-age="+lifetime+", immutable");				
+			}
 		}
 		
 		cookie.putToHeaders(responseHeaders);
@@ -498,6 +502,31 @@ public class ServerWebManager {
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}	
 	
+	private int getCacheLifetime(String fileName) {
+		int lifetime = 0;
+		if(fileName.contains("."))
+		{
+			String[] arr = fileName.split("\\.");
+			String ext = arr[arr.length - 1];
+			String lt = mime.getString("CACHE", ext, "0");
+			lt = lt.replaceAll("[^\\d]", "");
+			if(!lt.isEmpty())
+			{
+				try
+				{
+					lifetime = Integer.parseInt(lt);
+				}
+				catch(NumberFormatException e)
+				{
+					/**
+					 * Do nothing
+					 */
+				}
+			}
+		}
+		return lifetime;
+	}
+
 	private void processFeedbackPost(HttpHeaders headers, String requestBody, HttpServletRequest request) 
 	{
 		if(userAccount.checkUserAuth(headers))
@@ -1011,7 +1040,17 @@ public class ServerWebManager {
 		{
 			file = Config.getDefaultFile();
 		}
-		return documentRoot+file;
+		
+		String dir = "";
+		/**
+		dir = FileUtil.class.getResource("/").getFile();
+		if(dir.endsWith("/") && documentRoot.startsWith("/"))
+		{
+			dir = dir.substring(0, dir.length() - 1);
+		}
+		*/
+		return dir + documentRoot+file;
+		
 	}
 	
 	private String getFileName(String request) 

@@ -28,11 +28,11 @@ public class UserAccount {
 		this.path = userSettingPath;
 		this.init();
 	}
-
+	/*
 	public UserAccount() {
 		this.init();
 	}
-
+	*/
 	public void addUser(User user)
 	{
 		this.users.put(user.getUsername(), user);
@@ -186,9 +186,10 @@ public class UserAccount {
 			} 
 			catch (IOException e2) 
 			{
-				logger.error(e2.getMessage());
+				/**
+				 * Do nothing
+				 */
 			}
-			logger.error(e.getMessage());
 		}
 	}
 	

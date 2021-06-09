@@ -1,5 +1,6 @@
 package com.planetbiru.ws;
 
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.WebSocket;
@@ -9,18 +10,17 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.ClientEndpointConfig.Configurator;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
+import org.springframework.stereotype.Service;
+
 import com.planetbiru.config.Config;
 import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.util.Utility;
-
-import javax.websocket.ClientEndpointConfig.Configurator;
-
-import org.springframework.stereotype.Service;
 
 @Service
 public class WebSocketClient extends Thread implements WebSocket
@@ -191,65 +191,73 @@ public class WebSocketClient extends Thread implements WebSocket
 		}
 	}
 
-	@Override
-	public void abort() {
-		/**
-		 * Do nothing
-		 */
-	}
-
-	@Override
-	public String getSubprotocol() {
-		return null;
-	}
-
-	@Override
-	public boolean isInputClosed() {
-		return false;
-	}
-
-	@Override
-	public boolean isOutputClosed() {
-		return false;
-	}
-
-	@Override
-	public void request(long arg0) {
-		/**
-		 * Do nothing
-		 */
-	}
-
-	@Override
-	public CompletableFuture<WebSocket> sendBinary(ByteBuffer arg0, boolean arg1) {
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<WebSocket> sendClose(int arg0, String arg1) {
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<WebSocket> sendPing(ByteBuffer arg0) {
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<WebSocket> sendPong(ByteBuffer arg0) {
-		return null;
-	}
-
-	@Override
-	public CompletableFuture<WebSocket> sendText(CharSequence arg0, boolean arg1) {
-		return null;
-	}
+	
 
 	public void setSMSService(SMSInstance smsService) {
 		this.smsService = smsService;	
 	}
 
+	@Override
+	public void abort() {
+		// TODO Auto-generated method stub
+		
+	}
 
+	@Override
+	public String getSubprotocol() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isInputClosed() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isOutputClosed() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void request(long arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public CompletableFuture<WebSocket> sendBinary(ByteBuffer arg0, boolean arg1) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<WebSocket> sendClose(int arg0, String arg1) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<WebSocket> sendPing(ByteBuffer arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<WebSocket> sendPong(ByteBuffer arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CompletableFuture<WebSocket> sendText(CharSequence arg0, boolean arg1) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 	
 	
 }

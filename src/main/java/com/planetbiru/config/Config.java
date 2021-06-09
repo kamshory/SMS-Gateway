@@ -7,7 +7,7 @@ public class Config {
 		
 	}
 
-	private static String wsClientEndpoint = "ws://localhost:8888/ws?session=1";
+	private static String wsClientEndpoint = "ws://localhost:8888/ws";
 	private static String wsClientUsername = "qa";
 	private static String wsClientPassword = "4lt0@1234";
 	private static String portName = "COM3";
