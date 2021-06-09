@@ -785,8 +785,10 @@ public class RequestHandler {
 		if(fileName.toLowerCase().endsWith(".html"))
 		{
 			JSONObject authFileInfo = this.processAuthFile(responseBody);
+			System.out.println(authFileInfo.toString(4));
 			requireLogin = authFileInfo.optBoolean("content", false);
 			fileSub = this.getFileName(authFileInfo.optString("data-file", ""));
+			System.out.println(fileSub);
 		}
 		
 		String username = cookie.getSessionData().optString("username", "");
@@ -814,8 +816,6 @@ public class RequestHandler {
 		return webContent;
 	}
 	
-	
-	
 	private JSONObject processAuthFile(byte[] responseBody) 
 	{
 		String responseString = new String(responseBody);
@@ -831,10 +831,11 @@ public class RequestHandler {
 				meta = this.fixMeta(meta);
 				try
 				{
-					JSONObject xx = XML.toJSONObject(meta);
-					if(requireLogin(xx))
+					JSONObject metaObj = XML.toJSONObject(meta);
+					JSONObject metaObjFixed = this.lowerCaseJSONKey(metaObj);
+					if(requireLogin(metaObjFixed))
 					{
-						return xx.optJSONObject("meta");
+						return metaObjFixed.optJSONObject("meta");
 					}
 				}
 				catch(JSONException e)
@@ -848,7 +849,7 @@ public class RequestHandler {
 		while(start > -1);
 		return new JSONObject();
 	}
-
+	
 	private byte[] removeMeta(byte[] responseBody) 
 	{
 		String responseString = new String(responseBody);
@@ -866,8 +867,9 @@ public class RequestHandler {
 				String meta = this.fixMeta(metaOri);
 				try
 				{
-					JSONObject xx = XML.toJSONObject(meta);
-					if(requireLogin(xx))
+					JSONObject metaObj = XML.toJSONObject(meta);
+					JSONObject metaObjFixed = this.lowerCaseJSONKey(metaObj); 
+					if(requireLogin(metaObjFixed))
 					{
 						found = true;
 						break;
@@ -891,10 +893,10 @@ public class RequestHandler {
 		return responseBody;
 	}
 
-	private boolean requireLogin(JSONObject xx) {
-		if(xx != null && xx.has("meta"))
+	private boolean requireLogin(JSONObject metaObj) {
+		if(metaObj != null && metaObj.has("meta"))
 		{
-			JSONObject metaData = xx.optJSONObject("meta");
+			JSONObject metaData = metaObj.optJSONObject("meta");
 			if(metaData != null)
 			{
 				String name = metaData.optString("name", "");
@@ -914,7 +916,26 @@ public class RequestHandler {
 		{
 			input = input.replace(">", "/>");
 		}
-		return input.toLowerCase();
+		return input;
+	}
+	
+	private JSONObject lowerCaseJSONKey(Object object) 
+	{
+		JSONObject newMetaObj = new JSONObject();
+		JSONArray keys = ((JSONObject) object).names();
+		for (int i = 0; i < keys.length (); ++i) 
+		{
+		   String key = keys.getString(i); 
+		   if(((JSONObject) object).get(key) instanceof JSONObject)
+		   {
+			   newMetaObj.put(key.toLowerCase(), this.lowerCaseJSONKey(((JSONObject) object).get(key)));
+		   }
+		   else
+		   {
+			   newMetaObj.put(key.toLowerCase(), ((JSONObject) object).get(key));
+		   }
+		}
+		return newMetaObj;
 	}
 
 	private String getFileName(HttpServletRequest request) 
