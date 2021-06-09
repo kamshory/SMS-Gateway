@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.planetbiru.config.Config;
 import com.planetbiru.config.MIMEonfig;
+import com.planetbiru.cons.ConstantString;
 import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.user.User;
@@ -100,8 +101,8 @@ public class RequestHandler {
 	}
 
 	private void initSerial() {
-		String portName = Config.getPortName();
-		smsService.init(portName);
+		String port = Config.getPortName();
+		smsService.init(port);
 	}
 
 	private void initWSClient() 
@@ -118,16 +119,16 @@ public class RequestHandler {
 		
 		Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);
 	    
-	    String username = queryPairs.getOrDefault("username", "");
-	    String password = queryPairs.getOrDefault("password", "");
-	    String next = queryPairs.getOrDefault("next", "");
+	    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
+	    String password = queryPairs.getOrDefault(JsonKey.PASSWORD, "");
+	    String next = queryPairs.getOrDefault(JsonKey.NEXT, "");
 	    
 	    if(next.isEmpty())
 		{
-	    	next = "/index.html";
+	    	next = "/";
 		}
-		responseHeaders.add("Cache-Control", "no-cache");
-	    responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
+	    responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
 	    
 	    JSONObject res = new JSONObject();
 	    JSONObject payload = new JSONObject();
@@ -135,8 +136,8 @@ public class RequestHandler {
 	    res.put("code", 0);
 	    res.put("payload", payload);
 	    
-		cookie.setSessionValue("username", username);
-		cookie.setSessionValue("password", password);
+		cookie.setSessionValue(JsonKey.USERNAME, username);
+		cookie.setSessionValue(JsonKey.PASSWORD, password);
 		if(userAccount.checkUserAuth(username, password))
 		{
 			userAccount.updateLastActive(username);
@@ -162,8 +163,8 @@ public class RequestHandler {
 		cookie.putToHeaders(responseHeaders);
 
 		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
-		responseHeaders.add("Cache-Control", "no-cache");
-		responseHeaders.add("Location", "/index.html");
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
+		responseHeaders.add(ConstantString.LOCATION, "/");
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 
@@ -176,7 +177,7 @@ public class RequestHandler {
 		HttpStatus statusCode = HttpStatus.OK;
 		if(userAccount.checkUserAuth(headers))
 		{
-			String loggedUsername = (String) cookie.getSessionValue("username", "");
+			String loggedUsername = (String) cookie.getSessionValue(JsonKey.USERNAME, "");
 			String list = userAccount.getUser(loggedUsername).toString();
 			responseBody = list.getBytes();
 		}
@@ -186,8 +187,8 @@ public class RequestHandler {
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Content-type", "application/json");
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 	
@@ -211,8 +212,8 @@ public class RequestHandler {
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Content-type", "application/json");
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 	
@@ -236,8 +237,8 @@ public class RequestHandler {
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Content-type", "application/json");
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 	
@@ -259,13 +260,13 @@ public class RequestHandler {
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Content-type", "application/json");
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 	
 	@GetMapping(path="/user/detail/{username}")
-	public ResponseEntity<byte[]> handleUserGet(@RequestHeader HttpHeaders headers, @PathVariable(value="username") String username, HttpServletRequest request)
+	public ResponseEntity<byte[]> handleUserGet(@RequestHeader HttpHeaders headers, @PathVariable(value=JsonKey.USERNAME) String username, HttpServletRequest request)
 	{
 		HttpHeaders responseHeaders = new HttpHeaders();
 		CookieServer cookie = new CookieServer(headers);
@@ -282,8 +283,8 @@ public class RequestHandler {
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Content-type", "application/json");
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 
@@ -297,18 +298,18 @@ public class RequestHandler {
 		if(userAccount.checkUserAuth(headers))
 		{
 			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);		
-		    String username = queryPairs.getOrDefault("username", "");
-		    String password = queryPairs.getOrDefault("password", "");
-		    String name = queryPairs.getOrDefault("name", "");
-		    String phone = queryPairs.getOrDefault("phone", "");
+		    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
+		    String password = queryPairs.getOrDefault(JsonKey.PASSWORD, "");
+		    String name = queryPairs.getOrDefault(JsonKey.NAME, "");
+		    String phone = queryPairs.getOrDefault(JsonKey.PHONE, "");
 	
 		    JSONObject jsonObject = new JSONObject();
-			jsonObject.put("username", username);
-			jsonObject.put("name", name);
-			jsonObject.put("password", password);
-			jsonObject.put("phone", phone);
-			jsonObject.put("blocked", false);
-			jsonObject.put("active", true);
+			jsonObject.put(JsonKey.USERNAME, username);
+			jsonObject.put(JsonKey.NAME, name);
+			jsonObject.put(JsonKey.PASSWORD, password);
+			jsonObject.put(JsonKey.PHONE, phone);
+			jsonObject.put(JsonKey.BLOCKED, false);
+			jsonObject.put(JsonKey.ACTIVE, true);
 			
 			if(!username.isEmpty())
 			{
@@ -316,10 +317,10 @@ public class RequestHandler {
 				userAccount.save();
 			}		    
 		}
-		responseHeaders.add("Location", "../../admin.html");
+		responseHeaders.add(ConstantString.LOCATION, ConstantString.ADMIN_FILE_LEVEL_3);
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 	
@@ -333,35 +334,35 @@ public class RequestHandler {
 		if(userAccount.checkUserAuth(headers))
 		{
 			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);				
-		    String username = queryPairs.getOrDefault("username", "");
-		    String password = queryPairs.getOrDefault("password", "");
-		    String name = queryPairs.getOrDefault("name", "");
-		    String phone = queryPairs.getOrDefault("phone", "");
-		    boolean blocked = queryPairs.getOrDefault("blocked", "").equals("1");
-		    boolean active = queryPairs.getOrDefault("active", "").equals("1");
+		    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
+		    String password = queryPairs.getOrDefault(JsonKey.PASSWORD, "");
+		    String name = queryPairs.getOrDefault(JsonKey.NAME, "");
+		    String phone = queryPairs.getOrDefault(JsonKey.PHONE, "");
+		    boolean blocked = queryPairs.getOrDefault(JsonKey.BLOCKED, "").equals("1");
+		    boolean active = queryPairs.getOrDefault(JsonKey.ACTIVE, "").equals("1");
 	
 		    JSONObject jsonObject = new JSONObject();
-			jsonObject.put("username", username);
-			jsonObject.put("name", name);
-			jsonObject.put("phone", phone);
-			jsonObject.put("blocked", blocked);
-			jsonObject.put("active", active);
+			jsonObject.put(JsonKey.USERNAME, username);
+			jsonObject.put(JsonKey.NAME, name);
+			jsonObject.put(JsonKey.PHONE, phone);
+			jsonObject.put(JsonKey.BLOCKED, blocked);
+			jsonObject.put(JsonKey.ACTIVE, active);
 			if(!username.isEmpty())
 			{
-				jsonObject.put("username", username);
+				jsonObject.put(JsonKey.USERNAME, username);
 			}
 			if(!password.isEmpty())
 			{
-				jsonObject.put("password", password);
+				jsonObject.put(JsonKey.PASSWORD, password);
 			}
 			userAccount.updateUser(new User(jsonObject));		
 			userAccount.save();
 		    
 		}
-		responseHeaders.add("Location", "../../admin.html");
+		responseHeaders.add(ConstantString.LOCATION, ConstantString.ADMIN_FILE_LEVEL_3);
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 	
@@ -375,15 +376,15 @@ public class RequestHandler {
 		if(userAccount.checkUserAuth(headers))
 		{			
 			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);			
-		    String username = queryPairs.getOrDefault("username", "");
+		    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
 
 		    userAccount.deleteUser(username);		
 			userAccount.save();
 		}
-		responseHeaders.add("Location", "../../admin.html");
+		responseHeaders.add(ConstantString.LOCATION, ConstantString.ADMIN_FILE_LEVEL_3);
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}	
 
@@ -392,11 +393,10 @@ public class RequestHandler {
 	{		
 		HttpHeaders responseHeaders = new HttpHeaders();
 		HttpStatus statusCode = HttpStatus.OK;
-		JSONObject responseJSON = new JSONObject();
-		System.out.println(requestBody);
+		JSONObject responseJSON = this.processMessageRequest(requestBody);
 		
-		responseHeaders.add("Content-type", "application/json");
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		String responseBody = responseJSON.toString(4);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
@@ -407,10 +407,9 @@ public class RequestHandler {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		HttpStatus statusCode = HttpStatus.OK;
 		JSONObject responseJSON = new JSONObject();
-		System.out.println(requestBody);
 		
-		responseHeaders.add("Content-type", "application/json");
-		responseHeaders.add("Cache-Control", "no-cache");
+		responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 		String responseBody = responseJSON.toString(4);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
@@ -420,6 +419,7 @@ public class RequestHandler {
 	{		
 		return this.serveDocumentRoot(headers, request);
 	}
+	
 	@PostMapping(path="/**")
 	public ResponseEntity<byte[]> handleDocumentRootPost(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
 	{
@@ -451,7 +451,7 @@ public class RequestHandler {
 		statusCode = newContent.getStatusCode();
 		String contentType = this.getMIMEType(fileName);
 		
-		responseHeaders.add("Content-type", contentType);
+		responseHeaders.add(ConstantString.CONTENT_TYPE, contentType);
 		
 		if(fileName.endsWith(".html"))
 		{
@@ -459,7 +459,7 @@ public class RequestHandler {
 		}
 		else
 		{
-			responseHeaders.add("Cache-Control", "public, max-age="+cacheLifetime+", immutable");
+			responseHeaders.add(ConstantString.CACHE_CONTROL, "public, max-age="+cacheLifetime+", immutable");
 		}
 		
 		cookie.putToHeaders(responseHeaders);
@@ -475,28 +475,28 @@ public class RequestHandler {
 			String path = request.getServletPath();
 			if(path.equals("/admin.html"))
 			{
-				this.processAdmin(headers, requestBody, request, cookie);
+				this.processAdmin(requestBody, cookie);
 			}
 			if(path.equals("/account-update.html"))
 			{
-				this.processAccount(headers, requestBody, request, cookie);
+				this.processAccount(requestBody, cookie);
 			}
 			if(path.equals("/feeder-setting.html"))
 			{
-				this.processFeederSetting(headers, requestBody, request, cookie);
+				this.processFeederSetting(requestBody);
 			}
 			if(path.equals("/sms-setting.html"))
 			{
-				this.processSMSSetting(headers, requestBody, request, cookie);
+				this.processSMSSetting(requestBody);
 			}
 			if(path.equals("/sms.html"))
 			{
-				this.processSMS(headers, requestBody, request, cookie);
+				this.processSMS(requestBody);
 			}
 		}
 	}
 	
-	private void processSMSSetting(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+	private void processSMSSetting(String requestBody) {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		if(query.containsKey("save_sms_setting"))
 		{
@@ -506,7 +506,7 @@ public class RequestHandler {
 			try
 			{
 				String incommingInt = query.getOrDefault("incomming_interval", "0");
-				incommingInt = incommingInt.replaceAll("[^\\d]", "");
+				incommingInt = incommingInt.replaceAll(ConstantString.FILTER_INTEGER, "");
 				if(incommingInt.isEmpty())
 				{
 					incommingInt = "0";
@@ -524,7 +524,7 @@ public class RequestHandler {
 			try
 			{
 				String tmRange = query.getOrDefault("time_range", "0");
-				tmRange = tmRange.replaceAll("[^\\d]", "");
+				tmRange = tmRange.replaceAll(ConstantString.FILTER_INTEGER, "");
 				if(tmRange.isEmpty())
 				{
 					tmRange = "0";
@@ -542,7 +542,7 @@ public class RequestHandler {
 			try
 			{
 				String maxInRange = query.getOrDefault("max_per_time_range", "0");
-				maxInRange = maxInRange.replaceAll("[^\\d]", "");
+				maxInRange = maxInRange.replaceAll(ConstantString.FILTER_INTEGER, "");
 				if(maxInRange.isEmpty())
 				{
 					maxInRange = "0";
@@ -567,7 +567,7 @@ public class RequestHandler {
 		}		
 	}
 	
-	private void processFeederSetting(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+	private void processFeederSetting(String requestBody) {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		if(query.containsKey("save_feeder_setting"))
 		{
@@ -578,7 +578,7 @@ public class RequestHandler {
 			try
 			{
 				String port = query.getOrDefault("feeder_port", "0");
-				port = port.replaceAll("[^\\d]", "");
+				port = port.replaceAll(ConstantString.FILTER_INTEGER, "");
 				if(port.isEmpty())
 				{
 					port = "0";
@@ -600,7 +600,7 @@ public class RequestHandler {
 			try
 			{
 				String timeout = query.getOrDefault("feeder_timeout", "0");
-				timeout = timeout.replaceAll("[^\\d]", "");
+				timeout = timeout.replaceAll(ConstantString.FILTER_INTEGER, "");
 				if(timeout.isEmpty())
 				{
 					timeout = "0";
@@ -618,7 +618,7 @@ public class RequestHandler {
 			try
 			{
 				String refresh = query.getOrDefault("feeder_refresh", "0");
-				refresh = refresh.replaceAll("[^\\d]", "");
+				refresh = refresh.replaceAll(ConstantString.FILTER_INTEGER, "");
 				if(refresh.isEmpty())
 				{
 					refresh = "0";
@@ -648,7 +648,7 @@ public class RequestHandler {
 		}		
 	}
 	
-	private void processSMS(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+	private void processSMS(String requestBody) {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		if(query.containsKey("send"))
 		{
@@ -658,12 +658,12 @@ public class RequestHandler {
 		}		
 	}
 	
-	private void processAccount(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+	private void processAccount(String requestBody, CookieServer cookie) {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
-		String loggedUsername = (String) cookie.getSessionValue("username", "");
-		String phone = query.getOrDefault("phone", "");
-		String password = query.getOrDefault("password", "");
-		String name = query.getOrDefault("name", "");
+		String loggedUsername = (String) cookie.getSessionValue(JsonKey.USERNAME, "");
+		String phone = query.getOrDefault(JsonKey.PHONE, "");
+		String password = query.getOrDefault(JsonKey.PASSWORD, "");
+		String name = query.getOrDefault(JsonKey.NAME, "");
 		if(query.containsKey("update"))
 		{
 			User user = userAccount.getUser(loggedUsername);
@@ -678,9 +678,9 @@ public class RequestHandler {
 		}		
 	}
 	
-	private void processAdmin(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
+	private void processAdmin(String requestBody, CookieServer cookie) {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
-		String loggedUsername = (String) cookie.getSessionValue("username", "");
+		String loggedUsername = (String) cookie.getSessionValue(JsonKey.USERNAME, "");
 		if(query.containsKey("delete"))
 		{
 			/**
@@ -702,86 +702,108 @@ public class RequestHandler {
 			/**
 			 * Deactivate
 			 */
-			for (Map.Entry<String, String> entry : query.entrySet()) 
-			{
-				String key = entry.getKey();
-				String value = entry.getValue();
-				if(key.startsWith("id[") && !value.equals(loggedUsername))
-				{
-					userAccount.deactivate(value);
-				}
-			}
-			userAccount.save();
+			this.processAdminDeactivate(query, loggedUsername);
 		}
 		if(query.containsKey("activate"))
 		{
 			/**
 			 * Activate
 			 */
-			for (Map.Entry<String, String> entry : query.entrySet()) 
-			{
-				String key = entry.getKey();
-				String value = entry.getValue();
-				if(key.startsWith("id["))
-				{
-					userAccount.activate(value);
-				}
-			}
-			userAccount.save();
+			this.processAdminActivate(query);
 		}
 		if(query.containsKey("block"))
 		{
 			/**
 			 * Block
 			 */
-			for (Map.Entry<String, String> entry : query.entrySet()) 
-			{
-				String key = entry.getKey();
-				String value = entry.getValue();
-				if(key.startsWith("id[") && !value.equals(loggedUsername))
-				{
-					userAccount.block(value);
-				}
-			}
-			userAccount.save();
+			this.processAdminBlock(query, loggedUsername);
+			
 		}
 		if(query.containsKey("unblock"))
 		{
 			/**
 			 * Unblock
 			 */
-			for (Map.Entry<String, String> entry : query.entrySet()) 
-			{
-				String key = entry.getKey();
-				String value = entry.getValue();
-				if(key.startsWith("id["))
-				{
-					userAccount.unblock(value);
-				}
-			}
-			userAccount.save();
+			this.processAdminUnblock(query);
 		}
 		if(query.containsKey("update-data"))
 		{
-			String pkID = query.getOrDefault("pk_id", "");
-			String field = query.getOrDefault("field", "");
-			String value = query.getOrDefault("value", "");
-			if(!field.equals("username"))
+			this.processAdminUpdateData(query);
+		}
+	}
+	private void processAdminDeactivate(Map<String, String> query, String loggedUsername)
+	{
+		for (Map.Entry<String, String> entry : query.entrySet()) 
+		{
+			String key = entry.getKey();
+			String value = entry.getValue();
+			if(key.startsWith("id[") && !value.equals(loggedUsername))
 			{
-				User user = userAccount.getUser(pkID);
-				if(field.equals("phone"))
-				{
-					user.setPhone(value);
-				}
-				if(field.equals("name"))
-				{
-					user.setName(value);
-				}
-				userAccount.updateUser(user);
-				userAccount.save();
+				userAccount.deactivate(value);
 			}
 		}
-	}	
+		userAccount.save();
+	}
+	private void processAdminActivate(Map<String, String> query)
+	{
+		for (Map.Entry<String, String> entry : query.entrySet()) 
+		{
+			String key = entry.getKey();
+			String value = entry.getValue();
+			if(key.startsWith("id["))
+			{
+				userAccount.activate(value);
+			}
+		}
+		userAccount.save();
+	}
+	private void processAdminBlock(Map<String, String> query, String loggedUsername)
+	{
+		for (Map.Entry<String, String> entry : query.entrySet()) 
+		{
+			String key = entry.getKey();
+			String value = entry.getValue();
+			if(key.startsWith("id[") && !value.equals(loggedUsername))
+			{
+				userAccount.block(value);
+			}
+		}
+		userAccount.save();
+	}
+	private void processAdminUnblock(Map<String, String> query)
+	{
+		for (Map.Entry<String, String> entry : query.entrySet()) 
+		{
+			String key = entry.getKey();
+			String value = entry.getValue();
+			if(key.startsWith("id["))
+			{
+				userAccount.unblock(value);
+			}
+		}
+		userAccount.save();
+	}
+	private void processAdminUpdateData(Map<String, String> query)
+	{
+		String pkID = query.getOrDefault("pk_id", "");
+		String field = query.getOrDefault("field", "");
+		String value = query.getOrDefault("value", "");
+		if(!field.equals(JsonKey.USERNAME))
+		{
+			User user = userAccount.getUser(pkID);
+			if(field.equals(JsonKey.PHONE))
+			{
+				user.setPhone(value);
+			}
+			if(field.equals(JsonKey.NAME))
+			{
+				user.setName(value);
+			}
+			userAccount.updateUser(user);
+			userAccount.save();
+		}
+	}
+	
 	
 	private String getMIMEType(String fileName) 
 	{
@@ -800,17 +822,15 @@ public class RequestHandler {
 		if(fileName.toLowerCase().endsWith(".html"))
 		{
 			JSONObject authFileInfo = this.processAuthFile(responseBody);
-			System.out.println(authFileInfo.toString(4));
-			requireLogin = authFileInfo.optBoolean("content", false);
+			requireLogin = authFileInfo.optBoolean(JsonKey.CONTENT, false);
 			fileSub = this.getFileName(authFileInfo.optString("data-file", ""));
-			System.out.println(fileSub);
 		}
 		
-		String username = cookie.getSessionData().optString("username", "");
-		String password = cookie.getSessionData().optString("password", "");
+		String username = cookie.getSessionData().optString(JsonKey.USERNAME, "");
+		String password = cookie.getSessionData().optString(JsonKey.PASSWORD, "");
 		if(requireLogin)
 		{
-			responseHeaders.add("Cache-Control", "no-cache");
+			responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 			webContent.setResponseHeaders(responseHeaders);
 			if(!userAccount.checkUserAuth(username, password))	
 			{
@@ -850,7 +870,7 @@ public class RequestHandler {
 					JSONObject metaObjFixed = this.lowerCaseJSONKey(metaObj);
 					if(requireLogin(metaObjFixed))
 					{
-						return metaObjFixed.optJSONObject("meta");
+						return metaObjFixed.optJSONObject(JsonKey.META);
 					}
 				}
 				catch(JSONException e)
@@ -909,14 +929,14 @@ public class RequestHandler {
 	}
 
 	private boolean requireLogin(JSONObject metaObj) {
-		if(metaObj != null && metaObj.has("meta"))
+		if(metaObj != null && metaObj.has(JsonKey.META))
 		{
-			JSONObject metaData = metaObj.optJSONObject("meta");
+			JSONObject metaData = metaObj.optJSONObject(JsonKey.META);
 			if(metaData != null)
 			{
-				String name = metaData.optString("name", "");
-				boolean content = metaData.optBoolean("content", false);
-				if(name.equals("require-login") && content)
+				String name = metaData.optString(JsonKey.NAME, "");
+				boolean content = metaData.optBoolean(JsonKey.CONTENT, false);
+				if(name.equals(JsonKey.REQUIRE_LOGIN) && content)
 				{
 					return true;
 				}
@@ -968,45 +988,7 @@ public class RequestHandler {
 		return documentRoot+request;
 	}
 	
-	@GetMapping(path="/api**")
-	public ResponseEntity<String> handleGet2(@RequestHeader HttpHeaders headers, HttpServletRequest request)
-	{
-		HttpHeaders responseHeaders = new HttpHeaders();
-		HttpStatus statusCode = HttpStatus.OK;
-		return (new ResponseEntity<>("TEST = "+request.getServletPath(), responseHeaders, statusCode));	
-	}
-
-	@PostMapping(path="/api")
-	public ResponseEntity<String> handleMessage(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
-	{
-		return this.handleMessageRequest(headers, requestBody, request);
-	}
-
-	@PostMapping(path="/config")
-	public ResponseEntity<String> handleConfig(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
-	{
-		return this.handleConfigRequest(headers, requestBody, request);
-	}
-
-	private ResponseEntity<String> handleMessageRequest(HttpHeaders headers, String requestBody, HttpServletRequest request) 
-	{
-		JSONObject rresponseJSON = this.processMessageRequest(headers, requestBody, request);
-		String responseBody = rresponseJSON.toString(4);
-		HttpHeaders responseHeaders = new HttpHeaders();
-		HttpStatus statusCode = HttpStatus.OK;
-		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
-	}
-
-	private ResponseEntity<String> handleConfigRequest(HttpHeaders headers, String requestBody, HttpServletRequest request) 
-	{
-		JSONObject rresponseJSON = this.processConfigRequest(headers, requestBody, request);
-		String responseBody = rresponseJSON.toString(4);
-		HttpHeaders responseHeaders = new HttpHeaders();
-		HttpStatus statusCode = HttpStatus.OK;
-		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
-	}
-
-	private JSONObject processMessageRequest(HttpHeaders headers, String requestBody, HttpServletRequest request) {
+	private JSONObject processMessageRequest(String requestBody) {
 		JSONObject requestJSON = new JSONObject();
 		try
 		{
@@ -1031,21 +1013,6 @@ public class RequestHandler {
 					}
 				}
 			}
-		}
-		catch(JSONException e)
-		{
-			e.printStackTrace();
-		}
-		return requestJSON;
-	}
-
-	private JSONObject processConfigRequest(HttpHeaders headers, String requestBody, HttpServletRequest request) 
-	{
-		
-		JSONObject requestJSON = new JSONObject();
-		try
-		{
-			requestJSON = new JSONObject(requestBody);
 		}
 		catch(JSONException e)
 		{
