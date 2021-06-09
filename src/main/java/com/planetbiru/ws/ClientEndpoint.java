@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.planetbiru.config.Config;
+import com.planetbiru.gsm.GSMNotInitalizedException;
 import com.planetbiru.gsm.SMSInstance;
 
 public class ClientEndpoint extends Endpoint {
@@ -60,7 +61,11 @@ public class ClientEndpoint extends Endpoint {
 						{
 							String receiver = dt.optString("receiver", "");
 							String textMessage = dt.optString("message", "");
-							this.smsService.sendSMS(receiver, textMessage);
+							try {
+								this.smsService.sendSMS(receiver, textMessage);
+							} catch (GSMNotInitalizedException e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}

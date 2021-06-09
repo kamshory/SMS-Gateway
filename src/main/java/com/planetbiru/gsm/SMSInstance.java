@@ -18,15 +18,27 @@ public class SMSInstance {
 	{
 		return this.gsm.initialize(port);
 	}
-	public void close() {
+	public void close() throws GSMNotInitalizedException {
+		if(this.gsm.getSerialPort() == null)
+		{
+			throw new GSMNotInitalizedException("Serial port is null");
+		}
 		this.gsm.closePort();
 	}
-	public String sendSMS(String receiver, String message)
+	public String sendSMS(String receiver, String message) throws GSMNotInitalizedException
 	{
+		if(this.gsm.getSerialPort() == null)
+		{
+			throw new GSMNotInitalizedException("Serial port is null");
+		}
 		return this.gsm.sendSMS(receiver, message);
 	}
-	public List<SMS> readSMS()
+	public List<SMS> readSMS() throws GSMNotInitalizedException
 	{
+		if(this.gsm.getSerialPort() == null)
+		{
+			throw new GSMNotInitalizedException("Serial port is null");
+		}
 		return this.gsm.readSMS();
 	}
 }

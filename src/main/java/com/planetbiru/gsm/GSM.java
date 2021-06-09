@@ -32,14 +32,19 @@ public class GSM {
      * @param at : the AT command
      * @param waitingTime
      * @return String contains the response
+     * @throws GSMNotInitalizedException 
      */
-    public String executeAT(String at, int waitingTime) 
+    public String executeAT(String at, int waitingTime) throws GSMNotInitalizedException 
     {
+    	if(getSerialPort() == null)
+    	{
+    		throw new GSMNotInitalizedException("GSM is not initilized yet");
+    	}
         at = at + "\r\n";
         String result = "";
         int i = 0;
         byte[] bytes = at.getBytes();
-        serialPort.writeBytes(bytes, bytes.length);
+        getSerialPort().writeBytes(bytes, bytes.length);
         while ((result.trim().equals("") || result.trim().equals("\n")) && i < waitingTime) 
         {
             try 
@@ -62,8 +67,9 @@ public class GSM {
      *
      * @param ussd : the USSD command
      * @return String contains the response
+     * @throws GSMNotInitalizedException 
      */
-    public String executeUSSD(String ussd) 
+    public String executeUSSD(String ussd) throws GSMNotInitalizedException 
     {
     	// executeAT("AT+CUSD=1", 1);
         String cmd = "AT+CUSD=1,\"" + ussd + "\",15";
@@ -113,8 +119,9 @@ public class GSM {
      * Read the SMS stored in the sim card
      *
      * @return ArrayList contains the SMS
+     * @throws GSMNotInitalizedException 
      */
-    public List<SMS> readSMS() 
+    public List<SMS> readSMS() throws GSMNotInitalizedException 
     {
         executeAT("ATE0", 1);
         executeAT("AT+CSCS=\"GSM\"", 1);
@@ -178,6 +185,7 @@ public class GSM {
         return str;
     }
 
+    
 
     /**
      * Send an SMS
@@ -185,13 +193,14 @@ public class GSM {
      * @param recipient the destination number
      * @param message the body of the SMS
      * @return ?
+     * @throws GSMNotInitalizedException 
      */
-    public String sendSMS(String recipient, String message) 
+    public String sendSMS(String recipient, String message) throws GSMNotInitalizedException 
     {
     	String result = "";
     	recipient = recipient.trim();
     	message = message.trim();
-    	System.out.println("Send SMS to "+recipient+" "+message+" port "+this.serialPort.toString()+" "+this.portName);
+    	System.out.println("Send SMS to "+recipient+" "+message+" port "+this.getSerialPort().toString()+" "+this.portName);
     	result = executeAT("ATE0", 1);
     	result = executeAT("AT+CSCS=\"GSM\"", 1);
     	result = executeAT("AT+CMGF=1", 1);
@@ -201,7 +210,7 @@ public class GSM {
         return result;
     }
 
-    public String deleteSMS(int smsId, String storage) 
+    public String deleteSMS(int smsId, String storage) throws GSMNotInitalizedException 
     {
     	String result = "";
     	result = executeAT("AT+CPMS=\"" + storage + "\"", 1);
@@ -209,7 +218,7 @@ public class GSM {
         return result;
     }
 
-    public String deleteAllSMS(String storage) 
+    public String deleteAllSMS(String storage) throws GSMNotInitalizedException 
     {
     	String result = "";
     	result = executeAT("AT+CPMS=\"" + storage + "\"", 1);
@@ -227,10 +236,10 @@ public class GSM {
     {
     	this.portName = portName;
     	logger.info("port : {}", portName);
-        serialPort = SerialPort.getCommPort(portName);
-        if(serialPort.openPort()) 
+        setSerialPort(SerialPort.getCommPort(portName));
+        if(getSerialPort().openPort()) 
         {
-            serialPort.addDataListener(new SerialPortDataListener() 
+            getSerialPort().addDataListener(new SerialPortDataListener() 
             {
                 @Override
                 public int getListeningEvents() 
@@ -241,8 +250,8 @@ public class GSM {
                 @Override
                 public void serialEvent(SerialPortEvent event) 
                 {
-                    byte[] msg = new byte[serialPort.bytesAvailable()];
-                    serialPort.readBytes(msg, msg.length);
+                    byte[] msg = new byte[getSerialPort().bytesAvailable()];
+                    getSerialPort().readBytes(msg, msg.length);
                     //logger.info(res);
                     String result = new String(msg);
                     onChangeStateSerial(result);
@@ -289,13 +298,21 @@ public class GSM {
      */
     public boolean closePort() 
     {
-        if(serialPort != null)
+        if(getSerialPort() != null)
         {
-        	return serialPort.closePort();
+        	return getSerialPort().closePort();
         }
         else
         {
         	return true;
         }
     }
+
+	public SerialPort getSerialPort() {
+		return serialPort;
+	}
+
+	public void setSerialPort(SerialPort serialPort) {
+		this.serialPort = serialPort;
+	}
 }

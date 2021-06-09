@@ -28,6 +28,7 @@ import com.planetbiru.config.ResourceConfig;
 import com.planetbiru.cons.ConstantString;
 import com.planetbiru.cons.JsonKey;
 import com.planetbiru.cookie.CookieServer;
+import com.planetbiru.gsm.GSMNotInitalizedException;
 import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.settings.FeederSetting;
 import com.planetbiru.settings.SMSSetting;
@@ -677,7 +678,12 @@ public class ServerWebManager {
 				}
 				if(path.equals("/sms.html"))
 				{
-					this.processSMS(requestBody);
+					try {
+						this.processSMS(requestBody);
+					} catch (GSMNotInitalizedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		} 
@@ -841,7 +847,7 @@ public class ServerWebManager {
 		}		
 	}
 	
-	private void processSMS(String requestBody) {
+	private void processSMS(String requestBody) throws GSMNotInitalizedException {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		if(query.containsKey("send"))
 		{
@@ -1327,7 +1333,12 @@ public class ServerWebManager {
 						{
 							String receiver = dt.optString("receiver", "");
 							String textMessage = dt.optString("message", "");
-							this.smsService.sendSMS(receiver, textMessage);
+							try {
+								this.smsService.sendSMS(receiver, textMessage);
+							} catch (GSMNotInitalizedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 					}
 				}
