@@ -1,4 +1,4 @@
-package com.planetbiru;
+package com.planetbiru.cons;
 
 public class JsonKey {
 	private JsonKey()

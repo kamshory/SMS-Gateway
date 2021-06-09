@@ -16,7 +16,6 @@ public class GSM {
 	private static final Logger logger = LogManager.getLogger(GSM.class);
     private SerialPort serialPort;
     private String portName = "";
-    private String result;
     private static String[] smsStorage = new String[]{
     		"MT", 
     		"SM"
@@ -30,14 +29,14 @@ public class GSM {
     /**
      * Execute AT command
      *
-     * @param at          : the AT command
+     * @param at : the AT command
      * @param waitingTime
      * @return String contains the response
      */
     public String executeAT(String at, int waitingTime) 
     {
         at = at + "\r\n";
-        result = "";
+        String result = "";
         int i = 0;
         byte[] bytes = at.getBytes();
         serialPort.writeBytes(bytes, bytes.length);
@@ -68,7 +67,7 @@ public class GSM {
     {
     	// executeAT("AT+CUSD=1", 1);
         String cmd = "AT+CUSD=1,\"" + ussd + "\",15";
-        result = "";
+        String result = "";
         // serialPort.writeBytes((cmd).getBytes(), cmd.getBytes().length);
         executeAT(cmd, 2);
         if(result.contains("ERROR")) 
@@ -123,8 +122,8 @@ public class GSM {
         ArrayList<SMS> str = new ArrayList<>();
         for (String value : smsStorage) 
         {
-            executeAT("AT+CPMS=\"" + value + "\"", 1);
-            executeAT("AT+CMGL=\"ALL\"", 5);
+        	String result = executeAT("AT+CPMS=\"" + value + "\"", 1);
+        	result = executeAT("AT+CMGL=\"ALL\"", 5);
             if (result.contains("+CMGL")) 
             {
                 String[] strs = result.replace("\"", "").split("(?:,)|(?:\r\n)");
@@ -189,29 +188,32 @@ public class GSM {
      */
     public String sendSMS(String recipient, String message) 
     {
+    	String result = "";
     	recipient = recipient.trim();
     	message = message.trim();
     	System.out.println("Send SMS to "+recipient+" "+message+" port "+this.serialPort.toString()+" "+this.portName);
-        executeAT("ATE0", 1);
-        executeAT("AT+CSCS=\"GSM\"", 1);
-        executeAT("AT+CMGF=1", 1);
-        executeAT("AT+CMGS=\"" + recipient + "\"", 2);
-        executeAT(message, 2);
-        executeAT(Character.toString((char) 26), 10);
+    	result = executeAT("ATE0", 1);
+    	result = executeAT("AT+CSCS=\"GSM\"", 1);
+    	result = executeAT("AT+CMGF=1", 1);
+    	result = executeAT("AT+CMGS=\"" + recipient + "\"", 2);
+    	result = executeAT(message, 2);
+    	result = executeAT(Character.toString((char) 26), 10);
         return result;
     }
 
     public String deleteSMS(int smsId, String storage) 
     {
-        executeAT("AT+CPMS=\"" + storage + "\"", 1);
-        executeAT("AT+CMGD=" + smsId, 1);
+    	String result = "";
+    	result = executeAT("AT+CPMS=\"" + storage + "\"", 1);
+    	result = executeAT("AT+CMGD=" + smsId, 1);
         return result;
     }
 
     public String deleteAllSMS(String storage) 
     {
-        executeAT("AT+CPMS=\"" + storage + "\"", 1);
-        executeAT("AT+CMGD=0, 4", 1);
+    	String result = "";
+    	result = executeAT("AT+CPMS=\"" + storage + "\"", 1);
+    	result = executeAT("AT+CMGD=0, 4", 1);
         return result;
     }
 
@@ -224,7 +226,7 @@ public class GSM {
     public boolean initialize(String portName) 
     {
     	this.portName = portName;
-    	logger.info("port : "+portName);
+    	logger.info("port : {}", portName);
         serialPort = SerialPort.getCommPort(portName);
         if(serialPort.openPort()) 
         {
@@ -242,7 +244,8 @@ public class GSM {
                     byte[] msg = new byte[serialPort.bytesAvailable()];
                     serialPort.readBytes(msg, msg.length);
                     //logger.info(res);
-                    result = new String(msg);
+                    String result = new String(msg);
+                    onChangeStateSerial(result);
                 }
             });
             // Prepare for USSD
@@ -257,6 +260,11 @@ public class GSM {
         {
             return false;
         }
+    }
+    
+    public void onChangeStateSerial(String message)
+    {
+    	logger.info("Receive Message {}", message);
     }
 
     /**
@@ -273,7 +281,6 @@ public class GSM {
         }
         return systemPorts;
     }
-
 
     /**
      * Close the connection

@@ -39,14 +39,14 @@ public class MIMEonfig {
 		        while ((line = br.readLine()) != null) 
 		        {
 		            Matcher m = mSection.matcher(line);
-		            if (m.matches()) 
+		            if(m.matches()) 
 		            {
 		                section = m.group(1).trim();
 		            } 
 		            else if (section != null) 
 		            {
 		                m = mKeyValue.matcher(line);
-		                if (m.matches()) 
+		                if(m.matches()) 
 		                {
 		                    String key = m.group(1).trim();
 		                    String value = m.group(2).trim();

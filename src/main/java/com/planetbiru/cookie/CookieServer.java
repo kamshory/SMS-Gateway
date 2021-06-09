@@ -76,7 +76,6 @@ public class CookieServer {
 		} 
 		catch (IOException e) 
 		{
-			e.printStackTrace();
 			logger.error(e.getMessage());
 		}
 	}
@@ -153,7 +152,7 @@ public class CookieServer {
 	}
 	public void setValue(String name, String value)
 	{
-		for (Map.Entry<String, CookieItem> entry : this.cookieItem.entrySet()) 
+		for(Map.Entry<String, CookieItem> entry : this.cookieItem.entrySet()) 
 		{
 			String key = entry.getKey();
 			if(key.equals(name))
@@ -255,6 +254,7 @@ public class CookieServer {
 	        }
         }
     }
+	
 	public void saveSessionData() {
 		String sessionFile = this.getSessionFile();
 		try 
@@ -285,6 +285,7 @@ public class CookieServer {
 			 */
 		}
 	}
+	
 	private JSONObject readSessionData() {
 		File dir = new File(this.getSessionDir());
 		this.clearFile(dir);
@@ -307,17 +308,21 @@ public class CookieServer {
 		}
 		return jsonData;
 	}
+	
 	private String getSessionFile() {
 		String dir = FileUtil.class.getResource("/").getFile();
 		return dir+"/static/session/"+this.sessionID;
 	}
+	
 	private String getSessionDir() {
 		String dir = FileUtil.class.getResource("/").getFile();
 		return dir+"/static/session";
 	}
+	
 	public void setSessionValue(String sessionKey, Object sessionValue) {
 		this.getSessionData().put(sessionKey, sessionValue);		
 	}
+	
 	public Object getSessionValue(String sessionKey, Object defaultValue)
 	{
 		Object value = null;
@@ -335,9 +340,11 @@ public class CookieServer {
 		}
 		return value;
 	}
+	
 	public JSONObject getSessionData() {
 		return sessionData;
 	}
+	
 	public void setSessionData(JSONObject sessionData) {
 		this.sessionData = sessionData;
 	}

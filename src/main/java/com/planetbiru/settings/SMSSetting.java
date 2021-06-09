@@ -1,4 +1,4 @@
-package com.planetbiru;
+package com.planetbiru.settings;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.planetbiru.cons.JsonKey;
 import com.planetbiru.user.UserAccount;
 import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;

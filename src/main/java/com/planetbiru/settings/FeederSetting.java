@@ -1,4 +1,4 @@
-package com.planetbiru;
+package com.planetbiru.settings;
 
 import java.io.File;
 import java.io.IOException;
