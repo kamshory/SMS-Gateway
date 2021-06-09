@@ -129,6 +129,17 @@ public class RequestHandler {
 		wsClient.start();	
 	}
 	
+	@GetMapping(path="/broadcast-ws")
+	public ResponseEntity<byte[]> broadcast(@RequestHeader HttpHeaders headers, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		ServerWebSocket.broadcast("Halooooo.. ini pesannya....");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+
+	
 	@PostMapping(path="/login.html")
 	public ResponseEntity<byte[]> handleLogin(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
 	{		
@@ -431,7 +442,6 @@ public class RequestHandler {
 		String responseBody = responseJSON.toString(4);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
-	
 	@GetMapping(path="/**")
 	public ResponseEntity<byte[]> handleDocumentRootGet(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{		
