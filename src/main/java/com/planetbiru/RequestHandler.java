@@ -386,17 +386,32 @@ public class RequestHandler {
 		responseHeaders.add("Cache-Control", "no-cache");
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}	
+
 	@PostMapping(path="/api/sms**")
-	public ResponseEntity<String> snedSMS(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	public ResponseEntity<String> sendSMS(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
 	{		
 		HttpHeaders responseHeaders = new HttpHeaders();
 		HttpStatus statusCode = HttpStatus.OK;
-		
+		JSONObject responseJSON = new JSONObject();
 		System.out.println(requestBody);
 		
 		responseHeaders.add("Content-type", "application/json");
 		responseHeaders.add("Cache-Control", "no-cache");
-		String responseBody = "{}";
+		String responseBody = responseJSON.toString(4);
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	
+	@PostMapping(path="/api/ussd**")
+	public ResponseEntity<String> sendUSSD(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	{		
+		HttpHeaders responseHeaders = new HttpHeaders();
+		HttpStatus statusCode = HttpStatus.OK;
+		JSONObject responseJSON = new JSONObject();
+		System.out.println(requestBody);
+		
+		responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add("Cache-Control", "no-cache");
+		String responseBody = responseJSON.toString(4);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 	
