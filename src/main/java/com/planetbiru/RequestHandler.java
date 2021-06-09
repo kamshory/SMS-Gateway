@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,24 +47,38 @@ public class RequestHandler {
 	@Autowired
 	UserAccount userAccount;
 
-	private String portName = "COM3";
+	@Value("${sms.connection.type}")
+	private String portName;
 
+	@Value("${sms.ws.endpoint}")
 	private String wsClientEndpoint = "ws://localhost:8888/ws";
 
-	private String wsClientUsername = "qa";
+	@Value("${sms.ws.username}")
+	private String wsClientUsername;
 
-	private String wsClientPassword = "4lt0@1234";
+	@Value("${sms.ws.password}")
+	private String wsClientPassword;
 
+	@Value("${sms.web.session.name}")
 	private String sessionName;
 
-	private String feederSettingPath = "/static/data/feeder/feeder.json";
-	private String smsSettingPath = "/static/data/sms/sms.json";
-	private String mimeSettingPath = "/static/config/config.ini";
+	@Value("${sms.web.session.lifetime}")
+	private int cacheLifetime;
+
+	@Value("${sms.web.document.root}")
 	private String documentRoot = "/static/www";
+
+	@Value("${sms.path.setting.feeder}")
+	private String feederSettingPath;
+
+	@Value("${sms.path.setting.sms}")
+	private String smsSettingPath;
+	
+	@Value("${sms.path.setting.all}")
+	private String mimeSettingPath;	
 
 	private MIMEonfig mime = new MIMEonfig();
 	
-	private int cacheLifetime = 2400;
 
 
 	

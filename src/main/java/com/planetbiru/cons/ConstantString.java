@@ -21,4 +21,6 @@ public class ConstantString {
 	public static final String ADMIN_FILE_LEVEL_3            = "../../admin.html";
 	public static final String FILTER_INTEGER                = "[^\\d]";
 
+	
+	
 }

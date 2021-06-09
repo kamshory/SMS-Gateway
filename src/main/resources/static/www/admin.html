@@ -70,6 +70,7 @@
                 <thead>
                     <tr>
                         <td width="16"><input type="checkbox" class="check-all"></td>
+                        <td>Username</td>
                         <td>Name</td>
                         <td>Phone</td>
                         <td width="60" align="center">Access</td>
@@ -105,8 +106,9 @@
                                     $('.row-table tbody').append(
                                         '<tr data-pk-id="'+item.username+'">\r\n'+
                                         '	<td><input type="checkbox" class="check-all" name="id[]" value="'+item.username+'"></td>\r\n'+
-                                        '	<td><div class="inline-editor" title="Double click to edit data" data-field="phone">'+item.phone+'</div></td>\r\n'+
+                                        '	<td><a href="admin-update.html?username='+encodeURIComponent(item.username)+'">'+item.username+'</a></td>\r\n'+
                                         '	<td><div class="inline-editor" title="Double click to edit data" data-field="name">'+item.name+'</div></td>\r\n'+
+                                        '	<td><div class="inline-editor" title="Double click to edit data" data-field="phone">'+item.phone+'</div></td>\r\n'+
                                         '	<td align="center"><span class="icon '+blocked+'"></span></td>\r\n'+
                                         '	<td align="center"><span class="icon '+active+'"></span></td>\r\n'+
                                         '</tr>\r\n'

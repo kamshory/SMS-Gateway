@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
+import com.planetbiru.JsonKey;
 import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;
@@ -23,8 +24,8 @@ import com.planetbiru.util.FileUtil;
 @Service
 public class UserAccount {
 	private static final Logger logger = LoggerFactory.getLogger(UserAccount.class);
-	@Value("${sms.user.file}")
-	String path;
+	@Value("${sms.path.setting.user}")
+	private String path;
 	
 	private Map<String, User> users = new HashMap<>();
 	public void addUser(User user)
@@ -39,7 +40,7 @@ public class UserAccount {
 	}
 	public void addUser(JSONObject jsonObject) {
 		User user = new User(jsonObject);
-		this.users.put(jsonObject.optString("username", ""), user);
+		this.users.put(jsonObject.optString(JsonKey.USERNAME, ""), user);
 	}	
 	public User getUser(String username)
 	{
@@ -89,8 +90,8 @@ public class UserAccount {
 	public boolean checkUserAuth(HttpHeaders headers)
 	{
 		CookieServer cookie = new CookieServer(headers);
-		String username = cookie.getSessionData().optString("username", "");
-		String password = cookie.getSessionData().optString("password", "");
+		String username = cookie.getSessionData().optString(JsonKey.USERNAME, "");
+		String password = cookie.getSessionData().optString(JsonKey.PASSWORD, "");
 		return this.checkUserAuth(username, password);
 	}
 	public boolean checkUserAuth(String username, String password) {
@@ -128,6 +129,7 @@ public class UserAccount {
 			d1.mkdir();
 		}		
 	}
+	
 	private String getBaseDir()
 	{
 		return UserAccount.class.getResource("/").getFile();
