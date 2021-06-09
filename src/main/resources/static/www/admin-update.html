@@ -101,7 +101,7 @@
                     <td></td>
                     <td>
                         <input type="submit" class="btn btn-success" value="Save Changes" onclick="return confirm('Are you sure you want to save changes')" name="update">
-                        <input type="button" class="btn btn-primary" value="Cancel" onclick="window.location='account.html'">
+                        <input type="button" class="btn btn-primary" value="Cancel" onclick="window.location='admin.html'">
                     </td>
                 </tr>
             </tbody>
@@ -111,18 +111,25 @@
             $(document).ready(function(e){
                 var urlParams = new URLSearchParams(window.location.search);
                 var username = urlParams.get('username') || '';
-                $.ajax({
-                    type:"GET",
-                    url:"/user/detail/"+username,
-                    dataType:"json",
-                    success:function(data){
-                        $('input[name="name"]').val(data.name);
-                        $('input[name="username"]').val(data.username);
-                        $('input[name="phone"]').val(data.phone);
-                        $('input[name="blocked"]').prop('checked', data.blocked);
-                        $('input[name="active"]').prop('checked', data.active);
-                    }
-                });
+                if(username.length > 0)
+                {
+                  $.ajax({
+                      type:"GET",
+                      url:"/user/detail/"+username,
+                      dataType:"json",
+                      success:function(data){
+                          $('input[name="name"]').val(data.name);
+                          $('input[name="username"]').val(data.username);
+                          $('input[name="phone"]').val(data.phone);
+                          $('input[name="blocked"]').prop('checked', data.blocked);
+                          $('input[name="active"]').prop('checked', data.active);
+                      }
+                  });
+                }
+                else
+                {
+                  window.location = "admin.html";
+                }
             });
         </script>
     </div>

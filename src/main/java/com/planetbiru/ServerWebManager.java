@@ -658,6 +658,10 @@ public class ServerWebManager {
 				{
 					this.processAdmin(requestBody, cookie);
 				}
+				if(path.equals("/admin-update.html"))
+				{
+					this.processAdmin(requestBody, cookie);
+				}
 				if(path.equals("/account-update.html"))
 				{
 					this.processAccount(requestBody, cookie);
@@ -830,7 +834,7 @@ public class ServerWebManager {
 			feederSetting.setFeederPassword(feederPassword);
 			feederSetting.setFeederChannel(feederChannel);
 			feederSetting.setFeederTimeout(feederTimeout);
-			feederSetting.setFeederRefresh(feederRefresh);			
+			feederSetting.setFeederRefresh(feederRefresh);		
 			
 			feederSetting.save(feederSettingPath);			
 		}		
@@ -927,6 +931,10 @@ public class ServerWebManager {
 		if(query.containsKey("update-data"))
 		{
 			this.processAdminUpdateData(query);
+		}
+		if(query.containsKey("update"))
+		{
+			this.processAdminUpdate(query);
 		}
 	}
 	private void processAdminDeactivate(Map<String, String> query, String loggedUsername)
@@ -1033,6 +1041,48 @@ public class ServerWebManager {
 				{
 					user.setName(value);
 				}
+				userAccount.updateUser(user);
+				userAccount.save();
+			} 
+			catch (NoUserRegisteredException e) 
+			{
+				/**
+				 * Do nothing
+				 */
+			}
+		}
+	}
+	
+	private void processAdminUpdate(Map<String, String> query)
+	{
+		String username = query.getOrDefault(JsonKey.USERNAME, "").trim();
+		String name = query.getOrDefault(JsonKey.NAME, "").trim();
+		String phone = query.getOrDefault(JsonKey.PHONE, "").trim();
+		String password = query.getOrDefault(JsonKey.PASSWORD, "").trim();
+		boolean blocked = query.getOrDefault(JsonKey.BLOCKED, "").equals("1");
+		boolean active = query.getOrDefault(JsonKey.ACTIVE, "").equals("1");
+
+		if(!username.isEmpty())
+		{
+			User user;
+			try 
+			{
+				user = userAccount.getUser(username);
+				if(user.getUsername().isEmpty())
+				{
+					user.setUsername(username);
+				}
+				if(!name.isEmpty())
+				{
+					user.setName(name);
+				}
+				user.setPhone(phone);
+				if(!password.isEmpty())
+				{
+					user.setPassword(password);
+				}
+				user.setBlocked(blocked);
+				user.setActive(active);
 				userAccount.updateUser(user);
 				userAccount.save();
 			} 

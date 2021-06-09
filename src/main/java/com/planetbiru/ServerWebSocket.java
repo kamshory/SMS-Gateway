@@ -62,6 +62,8 @@ public class ServerWebSocket {
     Random rand = new Random();
     
     
+    
+    
     @PostConstruct
     public void init()
     {
