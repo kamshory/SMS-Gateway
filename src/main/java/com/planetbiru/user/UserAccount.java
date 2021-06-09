@@ -13,8 +13,10 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
+import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;
 
@@ -83,6 +85,13 @@ public class UserAccount {
 	}
 	public void deleteUser(String username) {
 		this.users.remove(username);
+	}
+	public boolean checkUserAuth(HttpHeaders headers)
+	{
+		CookieServer cookie = new CookieServer(headers);
+		String username = cookie.getSessionData().optString("username", "");
+		String password = cookie.getSessionData().optString("password", "");
+		return this.checkUserAuth(username, password);
 	}
 	public boolean checkUserAuth(String username, String password) {
 		if(username.isEmpty())

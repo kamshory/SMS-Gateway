@@ -1,9 +1,6 @@
 package com.planetbiru;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -33,6 +30,7 @@ import com.planetbiru.user.User;
 import com.planetbiru.user.UserAccount;
 import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;
+import com.planetbiru.util.Utility;
 import com.planetbiru.ws.WebSocketClient;
 
 @RestController
@@ -60,10 +58,12 @@ public class RequestHandler {
 	private String feederSettingPath = "/static/data/feeder/feeder.json";
 	private String smsSettingPath = "/static/data/sms/sms.json";
 	private String mimeSettingPath = "/static/config/config.ini";
+	private String documentRoot = "/static/www";
 
 	private MIMEonfig mime = new MIMEonfig();
 	
 	private int cacheLifetime = 2400;
+
 
 	
 	@PostConstruct
@@ -116,7 +116,7 @@ public class RequestHandler {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		CookieServer cookie = new CookieServer(headers);
 		
-		Map<String, String> queryPairs = this.parseURLEncoded(requestBody);
+		Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);
 	    
 	    String username = queryPairs.getOrDefault("username", "");
 	    String password = queryPairs.getOrDefault("password", "");
@@ -167,29 +167,6 @@ public class RequestHandler {
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
 
-	@GetMapping(path="/user/list")
-	public ResponseEntity<byte[]> handleUserList(@RequestHeader HttpHeaders headers, HttpServletRequest request)
-	{
-		HttpHeaders responseHeaders = new HttpHeaders();
-		CookieServer cookie = new CookieServer(headers);
-		byte[] responseBody = "".getBytes();
-		HttpStatus statusCode = HttpStatus.OK;
-		if(this.checkUserAuth(headers))
-		{
-			String list = userAccount.list();
-			responseBody = list.getBytes();
-		}
-		else
-		{
-			statusCode = HttpStatus.UNAUTHORIZED;			
-		}
-		cookie.saveSessionData();
-		cookie.putToHeaders(responseHeaders);
-		responseHeaders.add("Content-type", "application/json");
-		responseHeaders.add("Cache-Control", "no-cache");
-		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
-	}
-	
 	@GetMapping(path="/account/self")
 	public ResponseEntity<byte[]> handleSelfAccount(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{
@@ -197,7 +174,7 @@ public class RequestHandler {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(this.checkUserAuth(headers))
+		if(userAccount.checkUserAuth(headers))
 		{
 			String loggedUsername = (String) cookie.getSessionValue("username", "");
 			String list = userAccount.getUser(loggedUsername).toString();
@@ -221,7 +198,7 @@ public class RequestHandler {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(this.checkUserAuth(headers))
+		if(userAccount.checkUserAuth(headers))
 		{
 			FeederSetting feederSetting = new FeederSetting();
 			feederSetting.load(feederSettingPath);
@@ -246,11 +223,34 @@ public class RequestHandler {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(this.checkUserAuth(headers))
+		if(userAccount.checkUserAuth(headers))
 		{
 			SMSSetting smsSetting = new SMSSetting();
 			smsSetting.load(smsSettingPath);
 			String list = smsSetting.toString();
+			responseBody = list.getBytes();
+		}
+		else
+		{
+			statusCode = HttpStatus.UNAUTHORIZED;			
+		}
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add("Cache-Control", "no-cache");
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	
+	@GetMapping(path="/user/list")
+	public ResponseEntity<byte[]> handleUserList(@RequestHeader HttpHeaders headers, HttpServletRequest request)
+	{
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.OK;
+		if(userAccount.checkUserAuth(headers))
+		{
+			String list = userAccount.list();
 			responseBody = list.getBytes();
 		}
 		else
@@ -271,7 +271,7 @@ public class RequestHandler {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(this.checkUserAuth(headers))
+		if(userAccount.checkUserAuth(headers))
 		{
 			String data = userAccount.getUser(username).toString();
 			responseBody = data.getBytes();
@@ -294,9 +294,9 @@ public class RequestHandler {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
-		if(this.checkUserAuth(headers))
+		if(userAccount.checkUserAuth(headers))
 		{
-			Map<String, String> queryPairs = this.parseURLEncoded(requestBody);		
+			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);		
 		    String username = queryPairs.getOrDefault("username", "");
 		    String password = queryPairs.getOrDefault("password", "");
 		    String name = queryPairs.getOrDefault("name", "");
@@ -330,9 +330,9 @@ public class RequestHandler {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
-		if(this.checkUserAuth(headers))
+		if(userAccount.checkUserAuth(headers))
 		{
-			Map<String, String> queryPairs = this.parseURLEncoded(requestBody);				
+			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);				
 		    String username = queryPairs.getOrDefault("username", "");
 		    String password = queryPairs.getOrDefault("password", "");
 		    String name = queryPairs.getOrDefault("name", "");
@@ -372,9 +372,9 @@ public class RequestHandler {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
-		if(this.checkUserAuth(headers))
+		if(userAccount.checkUserAuth(headers))
 		{			
-			Map<String, String> queryPairs = this.parseURLEncoded(requestBody);			
+			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);			
 		    String username = queryPairs.getOrDefault("username", "");
 
 		    userAccount.deleteUser(username);		
@@ -386,34 +386,20 @@ public class RequestHandler {
 		responseHeaders.add("Cache-Control", "no-cache");
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}	
+	@PostMapping(path="/api/sms**")
+	public ResponseEntity<String> snedSMS(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	{		
+		HttpHeaders responseHeaders = new HttpHeaders();
+		HttpStatus statusCode = HttpStatus.OK;
+		
+		System.out.println(requestBody);
+		
+		responseHeaders.add("Content-type", "application/json");
+		responseHeaders.add("Cache-Control", "no-cache");
+		String responseBody = "{}";
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
 	
-	private Map<String, String> parseURLEncoded(String data)
-	{
-		Map<String, String> queryPairs = new LinkedHashMap<>();
-		String[] pairs = data.split("&");
-		int index = 0;
-	    for (String pair : pairs) 
-	    {
-	        int idx = pair.indexOf("=");
-	        try 
-	        {
-	        	String key = this.fixURLEncodeKey(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), index);
-				queryPairs.put(key, URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
-			} 
-	        catch (UnsupportedEncodingException e) 
-	        {
-				e.printStackTrace();
-			}
-	        index++;
-	    }
-		return queryPairs;
-	}
-
-	private String fixURLEncodeKey(String key, int index) 
-	{
-		return key.replace("[]", "["+index+"]");
-	}
-
 	@GetMapping(path="/**")
 	public ResponseEntity<byte[]> handleDocumentRootGet(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{		
@@ -468,7 +454,7 @@ public class RequestHandler {
 	
 	private void processFeedbackPost(HttpHeaders headers, String requestBody, HttpServletRequest request) 
 	{
-		if(this.checkUserAuth(headers))
+		if(userAccount.checkUserAuth(headers))
 		{
 			CookieServer cookie = new CookieServer(headers);
 			String path = request.getServletPath();
@@ -496,7 +482,7 @@ public class RequestHandler {
 	}
 	
 	private void processSMSSetting(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
-		Map<String, String> query = this.parseURLEncoded(requestBody);
+		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		if(query.containsKey("save_sms_setting"))
 		{
 			String connectionType = query.getOrDefault("connection_type", "");			
@@ -567,7 +553,7 @@ public class RequestHandler {
 	}
 	
 	private void processFeederSetting(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
-		Map<String, String> query = this.parseURLEncoded(requestBody);
+		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		if(query.containsKey("save_feeder_setting"))
 		{
 			String feederType = query.getOrDefault("feeder_type", "");			
@@ -648,7 +634,7 @@ public class RequestHandler {
 	}
 	
 	private void processSMS(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
-		Map<String, String> query = this.parseURLEncoded(requestBody);
+		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		if(query.containsKey("send"))
 		{
 			String receiver = query.getOrDefault("receiver", "");			
@@ -658,7 +644,7 @@ public class RequestHandler {
 	}
 	
 	private void processAccount(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
-		Map<String, String> query = this.parseURLEncoded(requestBody);
+		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		String loggedUsername = (String) cookie.getSessionValue("username", "");
 		String phone = query.getOrDefault("phone", "");
 		String password = query.getOrDefault("password", "");
@@ -678,7 +664,7 @@ public class RequestHandler {
 	}
 	
 	private void processAdmin(HttpHeaders headers, String requestBody, HttpServletRequest request, CookieServer cookie) {
-		Map<String, String> query = this.parseURLEncoded(requestBody);
+		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		String loggedUsername = (String) cookie.getSessionValue("username", "");
 		if(query.containsKey("delete"))
 		{
@@ -822,22 +808,13 @@ public class RequestHandler {
 					webContent.setStatusCode(statusCode);
 				}	
 			}
+			responseBody = this.removeMeta(responseBody);
+			webContent.setResponseBody(responseBody);
 		}
 		return webContent;
 	}
 	
-	private boolean checkUserAuth(HttpHeaders headers)
-	{
-		CookieServer cookie = new CookieServer(headers);
-		String username = cookie.getSessionData().optString("username", "");
-		String password = cookie.getSessionData().optString("password", "");
-		return this.checkUserAuth(username, password);
-	}
 	
-	private boolean checkUserAuth(String username, String password)
-	{
-		return userAccount.checkUserAuth(username, password);
-	}
 	
 	private JSONObject processAuthFile(byte[] responseBody) 
 	{
@@ -871,7 +848,49 @@ public class RequestHandler {
 		while(start > -1);
 		return new JSONObject();
 	}
-	
+
+	private byte[] removeMeta(byte[] responseBody) 
+	{
+		String responseString = new String(responseBody);
+		int start = 0;
+		int end = 0;
+		String metaOri = "";
+		boolean found = false;
+		do 
+		{
+			start = responseString.toLowerCase().indexOf("<meta ", end);
+			end = responseString.toLowerCase().indexOf(">", start);
+			if(start >-1 && end >-1 && end < responseString.length())
+			{
+				metaOri = responseString.substring(start, end+1);
+				String meta = this.fixMeta(metaOri);
+				try
+				{
+					JSONObject xx = XML.toJSONObject(meta);
+					if(requireLogin(xx))
+					{
+						found = true;
+						break;
+					}
+				}
+				catch(JSONException e)
+				{
+					/**
+					 * Do nothing
+					 */
+				}
+			}
+		}
+		while(start > -1);
+		String content = "";
+		if(found && responseBody != null)
+		{
+			content = new String(responseBody);
+			return content.replace(metaOri, "").getBytes();
+		}
+		return responseBody;
+	}
+
 	private boolean requireLogin(JSONObject xx) {
 		if(xx != null && xx.has("meta"))
 		{
@@ -905,12 +924,12 @@ public class RequestHandler {
 		{
 			file = Config.getDefaultFile();
 		}
-		return "/static/www"+file;
+		return documentRoot+file;
 	}
 	
 	private String getFileName(String request) 
 	{
-		return "/static/www"+request;
+		return documentRoot+request;
 	}
 	
 	@GetMapping(path="/api**")

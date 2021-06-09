@@ -1,5 +1,7 @@
 package com.planetbiru.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -15,7 +17,9 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import javax.crypto.Mac;
@@ -32,6 +36,33 @@ public class Utility {
 	private Utility()
 	{
 		
+	}
+
+	public static Map<String, String> parseURLEncoded(String data)
+	{
+		Map<String, String> queryPairs = new LinkedHashMap<>();
+		String[] pairs = data.split("&");
+		int index = 0;
+	    for (String pair : pairs) 
+	    {
+	        int idx = pair.indexOf("=");
+	        try 
+	        {
+	        	String key = Utility.fixURLEncodeKey(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), index);
+				queryPairs.put(key, URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
+			} 
+	        catch (UnsupportedEncodingException e) 
+	        {
+				e.printStackTrace();
+			}
+	        index++;
+	    }
+		return queryPairs;
+	}
+
+	private static String fixURLEncodeKey(String key, int index) 
+	{
+		return key.replace("[]", "["+index+"]");
 	}
 
 	public static List<String> asList(String input) 
