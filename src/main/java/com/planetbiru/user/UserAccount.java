@@ -28,16 +28,14 @@ public class UserAccount {
 		this.path = userSettingPath;
 		this.init();
 	}
-	/*
-	public UserAccount() {
-		this.init();
-	}
-	*/
 	public void addUser(User user)
 	{
 		this.users.put(user.getUsername(), user);
 	}
-	
+	public boolean isEmpty()
+	{
+		return this.users.isEmpty();
+	}
 	public void addUser(String username, JSONObject jsonObject) 
 	{
 		User user = new User(jsonObject);
@@ -50,40 +48,45 @@ public class UserAccount {
 		this.users.put(jsonObject.optString(JsonKey.USERNAME, ""), user);
 	}	
 	
-	public User getUser(String username)
+	public User getUser(String username) throws NoUserRegisteredException
 	{
+		if(this.users.isEmpty())
+		{
+			throw new NoUserRegisteredException("No user registered");
+		}
+	
 		return this.users.getOrDefault(username, new User());
 	}
 	
-	public void activate(String username) 
+	public void activate(String username) throws NoUserRegisteredException 
 	{
 		User user = this.getUser(username);
 		user.setActive(true);
 		this.updateUser(user);
 	}
 	
-	public void deactivate(String username) 
+	public void deactivate(String username) throws NoUserRegisteredException 
 	{
 		User user = this.getUser(username);
 		user.setActive(false);
 		this.updateUser(user);
 	}
 	
-	public void block(String username) 
+	public void block(String username) throws NoUserRegisteredException 
 	{
 		User user = this.getUser(username);
 		user.setBlocked(true);
 		this.updateUser(user);
 	}
 	
-	public void unblock(String username) 
+	public void unblock(String username) throws NoUserRegisteredException 
 	{
 		User user = this.getUser(username);
 		user.setBlocked(false);
 		this.updateUser(user);
 	}
 	
-	public void updateLastActive(String username) 
+	public void updateLastActive(String username) throws NoUserRegisteredException 
 	{
 		User user = this.getUser(username);
 		user.setLastActive(System.currentTimeMillis());
@@ -102,13 +105,13 @@ public class UserAccount {
 	public void deleteUser(String username) {
 		this.users.remove(username);
 	}
-	public boolean checkUserAuth(Map<String, List<String>> headers) {
+	public boolean checkUserAuth(Map<String, List<String>> headers) throws NoUserRegisteredException {
 		CookieServer cookie = new CookieServer(headers);
 		String username = cookie.getSessionData().optString(JsonKey.USERNAME, "");
 		String password = cookie.getSessionData().optString(JsonKey.PASSWORD, "");
 		return this.checkUserAuth(username, password);
 	}
-	public boolean checkUserAuth(HttpHeaders headers)
+	public boolean checkUserAuth(HttpHeaders headers) throws NoUserRegisteredException
 	{
 		CookieServer cookie = new CookieServer(headers);
 		String username = cookie.getSessionData().optString(JsonKey.USERNAME, "");
@@ -116,7 +119,7 @@ public class UserAccount {
 		return this.checkUserAuth(username, password);
 	}
 	
-	public boolean checkUserAuth(String username, String password) {
+	public boolean checkUserAuth(String username, String password) throws NoUserRegisteredException {
 		if(username.isEmpty())
 		{
 			return false;

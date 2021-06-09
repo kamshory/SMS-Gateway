@@ -272,7 +272,7 @@ input::-ms-reveal {
 .from-content .submit-btn {
   margin-top: 16px;
 }
-.from-content .submit-btn button {
+.from-content .submit-btn button, .from-content .submit-btn input[type="submit"] {
   background-color: #3B82F2;
   color: #FFF;
   font-size: 16px;
@@ -281,7 +281,7 @@ input::-ms-reveal {
   display: block;
   border-radius: 22px;
 }
-.from-content .submit-btn button:hover {
+.from-content .submit-btn button:hover, .from-content .submit-btn input[type="submit"]:hover  {
   background-color: #418AFD;;
 }
 .from-content .forgot-btn {

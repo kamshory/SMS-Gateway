@@ -32,6 +32,7 @@ import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.settings.FeederSetting;
 import com.planetbiru.settings.SMSSetting;
 import com.planetbiru.tools.WebContent;
+import com.planetbiru.user.NoUserRegisteredException;
 import com.planetbiru.user.User;
 import com.planetbiru.user.UserAccount;
 import com.planetbiru.util.FileNotFoundException;
@@ -84,8 +85,6 @@ public class ServerWebManager {
 	
 	@Value("${sms.path.setting.user}")
 	private String userSettingPath;
-
-
 	
 	@PostConstruct
 	public void init()
@@ -113,7 +112,8 @@ public class ServerWebManager {
 		wsClient.stopService();
 	}
 	
-	private void initConfig() {
+	private void initConfig() 
+	{
 		Config.setPortName(portName);
 		Config.setWsClientEndpoint(wsClientEndpoint);
 		Config.setWsClientUsername(wsClientUsername);
@@ -121,7 +121,8 @@ public class ServerWebManager {
 		Config.setSessionName(sessionName);
 	}
 
-	private void initSerial() {
+	private void initSerial() 
+	{
 		String port = Config.getPortName();
 		smsService.init(port);
 	}
@@ -170,10 +171,19 @@ public class ServerWebManager {
 	    
 		cookie.setSessionValue(JsonKey.USERNAME, username);
 		cookie.setSessionValue(JsonKey.PASSWORD, password);
-		if(userAccount.checkUserAuth(username, password))
+		try
 		{
-			userAccount.updateLastActive(username);
-			userAccount.save();
+			if(userAccount.checkUserAuth(username, password))
+			{
+				userAccount.updateLastActive(username);
+				userAccount.save();
+			}
+		}
+		catch(NoUserRegisteredException e)
+		{
+			/**
+			 * Do nothing
+			 */
 		}
 		
 		cookie.saveSessionData();
@@ -207,16 +217,26 @@ public class ServerWebManager {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(userAccount.checkUserAuth(headers))
+		try
 		{
-			String loggedUsername = (String) cookie.getSessionValue(JsonKey.USERNAME, "");
-			String list = userAccount.getUser(loggedUsername).toString();
-			responseBody = list.getBytes();
+			if(userAccount.checkUserAuth(headers))
+			{
+				String loggedUsername = (String) cookie.getSessionValue(JsonKey.USERNAME, "");
+				String list = userAccount.getUser(loggedUsername).toString();
+				responseBody = list.getBytes();
+			}
+			else
+			{
+				statusCode = HttpStatus.UNAUTHORIZED;			
+			}
 		}
-		else
+		catch(NoUserRegisteredException e)
 		{
-			statusCode = HttpStatus.UNAUTHORIZED;			
+			/**
+			 * Do nothing
+			 */
 		}
+		
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
 		responseHeaders.add(ConstantString.CONTENT_TYPE, ConstantString.APPLICATION_JSON);
@@ -231,16 +251,25 @@ public class ServerWebManager {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(userAccount.checkUserAuth(headers))
+		try
 		{
-			FeederSetting feederSetting = new FeederSetting();
-			feederSetting.load(feederSettingPath);
-			String list = feederSetting.toString();
-			responseBody = list.getBytes();
+			if(userAccount.checkUserAuth(headers))
+			{
+				FeederSetting feederSetting = new FeederSetting();
+				feederSetting.load(feederSettingPath);
+				String list = feederSetting.toString();
+				responseBody = list.getBytes();
+			}
+			else
+			{
+				statusCode = HttpStatus.UNAUTHORIZED;			
+			}
 		}
-		else
+		catch(NoUserRegisteredException e)
 		{
-			statusCode = HttpStatus.UNAUTHORIZED;			
+			/**
+			 * Do nothing
+			 */
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
@@ -256,16 +285,25 @@ public class ServerWebManager {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(userAccount.checkUserAuth(headers))
+		try
 		{
-			SMSSetting smsSetting = new SMSSetting();
-			smsSetting.load(smsSettingPath);
-			String list = smsSetting.toString();
-			responseBody = list.getBytes();
+			if(userAccount.checkUserAuth(headers))
+			{
+				SMSSetting smsSetting = new SMSSetting();
+				smsSetting.load(smsSettingPath);
+				String list = smsSetting.toString();
+				responseBody = list.getBytes();
+			}
+			else
+			{
+				statusCode = HttpStatus.UNAUTHORIZED;			
+			}
 		}
-		else
+		catch(NoUserRegisteredException e)
 		{
-			statusCode = HttpStatus.UNAUTHORIZED;			
+			/**
+			 * Do nothing
+			 */
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
@@ -281,14 +319,23 @@ public class ServerWebManager {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(userAccount.checkUserAuth(headers))
+		try
 		{
-			String list = userAccount.list();
-			responseBody = list.getBytes();
+			if(userAccount.checkUserAuth(headers))
+			{
+				String list = userAccount.list();
+				responseBody = list.getBytes();
+			}
+			else
+			{
+				statusCode = HttpStatus.UNAUTHORIZED;			
+			}
 		}
-		else
+		catch(NoUserRegisteredException e)
 		{
-			statusCode = HttpStatus.UNAUTHORIZED;			
+			/**
+			 * Do nothing
+			 */
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
@@ -304,14 +351,23 @@ public class ServerWebManager {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		if(userAccount.checkUserAuth(headers))
+		try
 		{
-			String data = userAccount.getUser(username).toString();
-			responseBody = data.getBytes();
+			if(userAccount.checkUserAuth(headers))
+			{
+				String data = userAccount.getUser(username).toString();
+				responseBody = data.getBytes();
+			}
+			else
+			{
+				statusCode = HttpStatus.UNAUTHORIZED;			
+			}
 		}
-		else
+		catch(NoUserRegisteredException e)
 		{
-			statusCode = HttpStatus.UNAUTHORIZED;			
+			/**
+			 * Do nothing
+			 */
 		}
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
@@ -327,28 +383,74 @@ public class ServerWebManager {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
-		if(userAccount.checkUserAuth(headers))
+		try
+		{
+			if(userAccount.checkUserAuth(headers))
+			{
+				Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);		
+			    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
+			    String password = queryPairs.getOrDefault(JsonKey.PASSWORD, "");
+			    String name = queryPairs.getOrDefault(JsonKey.NAME, "");
+			    String phone = queryPairs.getOrDefault(JsonKey.PHONE, "");
+		
+			    JSONObject jsonObject = new JSONObject();
+				jsonObject.put(JsonKey.USERNAME, username);
+				jsonObject.put(JsonKey.NAME, name);
+				jsonObject.put(JsonKey.PASSWORD, password);
+				jsonObject.put(JsonKey.PHONE, phone);
+				jsonObject.put(JsonKey.BLOCKED, false);
+				jsonObject.put(JsonKey.ACTIVE, true);
+				
+				if(!username.isEmpty())
+				{
+					userAccount.addUser(new User(jsonObject));		
+					userAccount.save();
+				}		    
+			}
+		}
+		catch(NoUserRegisteredException e)
+		{
+			/**
+			 * Do nothing
+			 */
+		}
+		responseHeaders.add(ConstantString.LOCATION, ConstantString.ADMIN_FILE_LEVEL_3);
+		cookie.saveSessionData();
+		cookie.putToHeaders(responseHeaders);
+		responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
+		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
+	}
+	
+	@PostMapping(path="/user/init**")
+	public ResponseEntity<byte[]> userInit(@RequestHeader HttpHeaders headers, @RequestBody String requestBody, HttpServletRequest request)
+	{		
+		HttpHeaders responseHeaders = new HttpHeaders();
+		CookieServer cookie = new CookieServer(headers);
+		byte[] responseBody = "".getBytes();
+		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
+		if(userAccount.isEmpty())
 		{
 			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);		
-		    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
-		    String password = queryPairs.getOrDefault(JsonKey.PASSWORD, "");
-		    String name = queryPairs.getOrDefault(JsonKey.NAME, "");
-		    String phone = queryPairs.getOrDefault(JsonKey.PHONE, "");
-	
-		    JSONObject jsonObject = new JSONObject();
-			jsonObject.put(JsonKey.USERNAME, username);
-			jsonObject.put(JsonKey.NAME, name);
-			jsonObject.put(JsonKey.PASSWORD, password);
-			jsonObject.put(JsonKey.PHONE, phone);
-			jsonObject.put(JsonKey.BLOCKED, false);
-			jsonObject.put(JsonKey.ACTIVE, true);
-			
-			if(!username.isEmpty())
+		    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "").trim();
+		    String password = queryPairs.getOrDefault(JsonKey.PASSWORD, "").trim();
+		    String name = queryPairs.getOrDefault(JsonKey.NAME, "").trim();
+		    String phone = queryPairs.getOrDefault(JsonKey.PHONE, "").trim();
+
+			if(!username.isEmpty() && !name.isEmpty() && !phone.isEmpty() && password.length() >= 6)
 			{
+			    JSONObject jsonObject = new JSONObject();
+				jsonObject.put(JsonKey.USERNAME, username);
+				jsonObject.put(JsonKey.NAME, name);
+				jsonObject.put(JsonKey.PASSWORD, password);
+				jsonObject.put(JsonKey.PHONE, phone);
+				jsonObject.put(JsonKey.BLOCKED, false);
+				jsonObject.put(JsonKey.ACTIVE, true);
+				
 				userAccount.addUser(new User(jsonObject));		
 				userAccount.save();
 			}		    
 		}
+		
 		responseHeaders.add(ConstantString.LOCATION, ConstantString.ADMIN_FILE_LEVEL_3);
 		cookie.saveSessionData();
 		cookie.putToHeaders(responseHeaders);
@@ -363,33 +465,41 @@ public class ServerWebManager {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
-		if(userAccount.checkUserAuth(headers))
+		try
 		{
-			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);				
-		    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
-		    String password = queryPairs.getOrDefault(JsonKey.PASSWORD, "");
-		    String name = queryPairs.getOrDefault(JsonKey.NAME, "");
-		    String phone = queryPairs.getOrDefault(JsonKey.PHONE, "");
-		    boolean blocked = queryPairs.getOrDefault(JsonKey.BLOCKED, "").equals("1");
-		    boolean active = queryPairs.getOrDefault(JsonKey.ACTIVE, "").equals("1");
-	
-		    JSONObject jsonObject = new JSONObject();
-			jsonObject.put(JsonKey.USERNAME, username);
-			jsonObject.put(JsonKey.NAME, name);
-			jsonObject.put(JsonKey.PHONE, phone);
-			jsonObject.put(JsonKey.BLOCKED, blocked);
-			jsonObject.put(JsonKey.ACTIVE, active);
-			if(!username.isEmpty())
+			if(userAccount.checkUserAuth(headers))
 			{
+				Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);				
+			    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
+			    String password = queryPairs.getOrDefault(JsonKey.PASSWORD, "");
+			    String name = queryPairs.getOrDefault(JsonKey.NAME, "");
+			    String phone = queryPairs.getOrDefault(JsonKey.PHONE, "");
+			    boolean blocked = queryPairs.getOrDefault(JsonKey.BLOCKED, "").equals("1");
+			    boolean active = queryPairs.getOrDefault(JsonKey.ACTIVE, "").equals("1");
+		
+			    JSONObject jsonObject = new JSONObject();
 				jsonObject.put(JsonKey.USERNAME, username);
+				jsonObject.put(JsonKey.NAME, name);
+				jsonObject.put(JsonKey.PHONE, phone);
+				jsonObject.put(JsonKey.BLOCKED, blocked);
+				jsonObject.put(JsonKey.ACTIVE, active);
+				if(!username.isEmpty())
+				{
+					jsonObject.put(JsonKey.USERNAME, username);
+				}
+				if(!password.isEmpty())
+				{
+					jsonObject.put(JsonKey.PASSWORD, password);
+				}
+				userAccount.updateUser(new User(jsonObject));		
+				userAccount.save();		    
 			}
-			if(!password.isEmpty())
-			{
-				jsonObject.put(JsonKey.PASSWORD, password);
-			}
-			userAccount.updateUser(new User(jsonObject));		
-			userAccount.save();
-		    
+		}
+		catch(NoUserRegisteredException e)
+		{
+			/**
+			 * Do nothing
+			 */
 		}
 		responseHeaders.add(ConstantString.LOCATION, ConstantString.ADMIN_FILE_LEVEL_3);
 		cookie.saveSessionData();
@@ -405,13 +515,22 @@ public class ServerWebManager {
 		CookieServer cookie = new CookieServer(headers);
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.MOVED_PERMANENTLY;
-		if(userAccount.checkUserAuth(headers))
-		{			
-			Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);			
-		    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
-
-		    userAccount.deleteUser(username);		
-			userAccount.save();
+		try
+		{
+			if(userAccount.checkUserAuth(headers))
+			{			
+				Map<String, String> queryPairs = Utility.parseURLEncoded(requestBody);			
+			    String username = queryPairs.getOrDefault(JsonKey.USERNAME, "");
+	
+			    userAccount.deleteUser(username);		
+				userAccount.save();
+			}
+		}
+		catch(NoUserRegisteredException e)
+		{
+			/**
+			 * Do nothing
+			 */
 		}
 		responseHeaders.add(ConstantString.LOCATION, ConstantString.ADMIN_FILE_LEVEL_3);
 		cookie.saveSessionData();
@@ -445,6 +564,7 @@ public class ServerWebManager {
 		String responseBody = responseJSON.toString(4);
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
+	
 	@GetMapping(path="/**")
 	public ResponseEntity<byte[]> handleDocumentRootGet(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{		
@@ -528,31 +648,39 @@ public class ServerWebManager {
 	}
 
 	private void processFeedbackPost(HttpHeaders headers, String requestBody, HttpServletRequest request) 
-	{
-		if(userAccount.checkUserAuth(headers))
+	{		
+		try {
+			if(userAccount.checkUserAuth(headers))
+			{
+				CookieServer cookie = new CookieServer(headers);
+				String path = request.getServletPath();
+				if(path.equals("/admin.html"))
+				{
+					this.processAdmin(requestBody, cookie);
+				}
+				if(path.equals("/account-update.html"))
+				{
+					this.processAccount(requestBody, cookie);
+				}
+				if(path.equals("/feeder-setting.html"))
+				{
+					this.processFeederSetting(requestBody);
+				}
+				if(path.equals("/sms-setting.html"))
+				{
+					this.processSMSSetting(requestBody);
+				}
+				if(path.equals("/sms.html"))
+				{
+					this.processSMS(requestBody);
+				}
+			}
+		} 
+		catch (NoUserRegisteredException e) 
 		{
-			CookieServer cookie = new CookieServer(headers);
-			String path = request.getServletPath();
-			if(path.equals("/admin.html"))
-			{
-				this.processAdmin(requestBody, cookie);
-			}
-			if(path.equals("/account-update.html"))
-			{
-				this.processAccount(requestBody, cookie);
-			}
-			if(path.equals("/feeder-setting.html"))
-			{
-				this.processFeederSetting(requestBody);
-			}
-			if(path.equals("/sms-setting.html"))
-			{
-				this.processSMSSetting(requestBody);
-			}
-			if(path.equals("/sms.html"))
-			{
-				this.processSMS(requestBody);
-			}
+			/**
+			 * Do nothing
+			 */
 		}
 	}
 	
@@ -726,15 +854,25 @@ public class ServerWebManager {
 		String name = query.getOrDefault(JsonKey.NAME, "");
 		if(query.containsKey("update"))
 		{
-			User user = userAccount.getUser(loggedUsername);
-			user.setName(name);
-			user.setPhone(phone);
-			if(!password.isEmpty())
+			User user;
+			try 
 			{
-				user.setPassword(password);
+				user = userAccount.getUser(loggedUsername);
+				user.setName(name);
+				user.setPhone(phone);
+				if(!password.isEmpty())
+				{
+					user.setPassword(password);
+				}
+				userAccount.updateUser(user);
+				userAccount.save();
+			} 
+			catch (NoUserRegisteredException e) 
+			{
+				/**
+				 * Do nothing
+				 */
 			}
-			userAccount.updateUser(user);
-			userAccount.save();
 		}		
 	}
 	
@@ -799,7 +937,13 @@ public class ServerWebManager {
 			String value = entry.getValue();
 			if(key.startsWith("id[") && !value.equals(loggedUsername))
 			{
-				userAccount.deactivate(value);
+				try {
+					userAccount.deactivate(value);
+				} catch (NoUserRegisteredException e) {
+					/**
+					 * Do nothing
+					 */
+				}
 			}
 		}
 		userAccount.save();
@@ -812,7 +956,16 @@ public class ServerWebManager {
 			String value = entry.getValue();
 			if(key.startsWith("id["))
 			{
-				userAccount.activate(value);
+				try 
+				{
+					userAccount.activate(value);
+				} 
+				catch (NoUserRegisteredException e) 
+				{
+					/**
+					 * Do nothing
+					 */
+				}
 			}
 		}
 		userAccount.save();
@@ -825,7 +978,16 @@ public class ServerWebManager {
 			String value = entry.getValue();
 			if(key.startsWith("id[") && !value.equals(loggedUsername))
 			{
-				userAccount.block(value);
+				try 
+				{
+					userAccount.block(value);
+				} 
+				catch (NoUserRegisteredException e) 
+				{
+					/**
+					 * Do nothing
+					 */
+				}
 			}
 		}
 		userAccount.save();
@@ -838,7 +1000,16 @@ public class ServerWebManager {
 			String value = entry.getValue();
 			if(key.startsWith("id["))
 			{
-				userAccount.unblock(value);
+				try 
+				{
+					userAccount.unblock(value);
+				} 
+				catch (NoUserRegisteredException e) 
+				{
+					/**
+					 * Do nothing
+					 */
+				}
 			}
 		}
 		userAccount.save();
@@ -850,17 +1021,27 @@ public class ServerWebManager {
 		String value = query.getOrDefault("value", "");
 		if(!field.equals(JsonKey.USERNAME))
 		{
-			User user = userAccount.getUser(pkID);
-			if(field.equals(JsonKey.PHONE))
+			User user;
+			try 
 			{
-				user.setPhone(value);
-			}
-			if(field.equals(JsonKey.NAME))
+				user = userAccount.getUser(pkID);
+				if(field.equals(JsonKey.PHONE))
+				{
+					user.setPhone(value);
+				}
+				if(field.equals(JsonKey.NAME))
+				{
+					user.setName(value);
+				}
+				userAccount.updateUser(user);
+				userAccount.save();
+			} 
+			catch (NoUserRegisteredException e) 
 			{
-				user.setName(value);
+				/**
+				 * Do nothing
+				 */
 			}
-			userAccount.updateUser(user);
-			userAccount.save();
 		}
 	}
 	
@@ -892,20 +1073,36 @@ public class ServerWebManager {
 		{
 			responseHeaders.add(ConstantString.CACHE_CONTROL, ConstantString.NO_CACHE);
 			webContent.setResponseHeaders(responseHeaders);
-			if(!userAccount.checkUserAuth(username, password))	
+			try
 			{
-				try 
+				if(!userAccount.checkUserAuth(username, password))	
 				{
-					responseBody = FileUtil.readResource(fileSub);
-					return this.updateContent(fileSub, responseHeaders, responseBody, statusCode, cookie);
-				} 
-				catch (FileNotFoundException e) 
-				{
-					statusCode = HttpStatus.NOT_FOUND;
-					webContent.setStatusCode(statusCode);
-				}	
+					try 
+					{
+						responseBody = FileUtil.readResource(fileSub);
+						return this.updateContent(fileSub, responseHeaders, responseBody, statusCode, cookie);
+					} 
+					catch (FileNotFoundException e) 
+					{
+						statusCode = HttpStatus.NOT_FOUND;
+						webContent.setStatusCode(statusCode);
+					}	
+				}
+				responseBody = this.removeMeta(responseBody);
 			}
-			responseBody = this.removeMeta(responseBody);
+			catch(NoUserRegisteredException e)
+			{
+				/**
+				 * Do nothing
+				 */
+				statusCode = HttpStatus.PERMANENT_REDIRECT;
+				webContent.setStatusCode(statusCode);
+				
+				responseHeaders.add(ConstantString.LOCATION, ConstantString.ADMIN_INIT);
+				webContent.setResponseHeaders(responseHeaders);
+				
+				responseBody = "".getBytes();
+			}
 			webContent.setResponseBody(responseBody);
 		}
 		return webContent;
@@ -1058,7 +1255,8 @@ public class ServerWebManager {
 		return documentRoot+request;
 	}
 	
-	private JSONObject processMessageRequest(String requestBody) {
+	private JSONObject processMessageRequest(String requestBody) 
+	{
 		JSONObject requestJSON = new JSONObject();
 		try
 		{
@@ -1086,7 +1284,9 @@ public class ServerWebManager {
 		}
 		catch(JSONException e)
 		{
-			e.printStackTrace();
+			/**
+			 * Do nothing
+			 */
 		}
 		return requestJSON;
 	}
