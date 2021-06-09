@@ -28,58 +28,69 @@ public class UserAccount {
 	private String path;
 	
 	private Map<String, User> users = new HashMap<>();
+	
 	public void addUser(User user)
 	{
 		this.users.put(user.getUsername(), user);
 	}
+	
 	public void addUser(String username, JSONObject jsonObject) 
 	{
 		User user = new User(jsonObject);
 		this.users.put(username, user);
 		
 	}
+	
 	public void addUser(JSONObject jsonObject) {
 		User user = new User(jsonObject);
 		this.users.put(jsonObject.optString(JsonKey.USERNAME, ""), user);
 	}	
+	
 	public User getUser(String username)
 	{
 		return this.users.getOrDefault(username, new User());
 	}
+	
 	public void activate(String username) 
 	{
 		User user = this.getUser(username);
 		user.setActive(true);
 		this.updateUser(user);
 	}
+	
 	public void deactivate(String username) 
 	{
 		User user = this.getUser(username);
 		user.setActive(false);
 		this.updateUser(user);
 	}
+	
 	public void block(String username) 
 	{
 		User user = this.getUser(username);
 		user.setBlocked(true);
 		this.updateUser(user);
 	}
+	
 	public void unblock(String username) 
 	{
 		User user = this.getUser(username);
 		user.setBlocked(false);
 		this.updateUser(user);
 	}
+	
 	public void updateLastActive(String username) 
 	{
 		User user = this.getUser(username);
 		user.setLastActive(System.currentTimeMillis());
 		this.updateUser(user);
 	}
+	
 	public void updateUser(User user)
 	{
 		this.users.put(user.getUsername(), user);
 	}
+	
 	public void deleteUser(User user)
 	{
 		this.users.remove(user.getUsername());
@@ -87,6 +98,7 @@ public class UserAccount {
 	public void deleteUser(String username) {
 		this.users.remove(username);
 	}
+	
 	public boolean checkUserAuth(HttpHeaders headers)
 	{
 		CookieServer cookie = new CookieServer(headers);
@@ -94,6 +106,7 @@ public class UserAccount {
 		String password = cookie.getSessionData().optString(JsonKey.PASSWORD, "");
 		return this.checkUserAuth(username, password);
 	}
+	
 	public boolean checkUserAuth(String username, String password) {
 		if(username.isEmpty())
 		{
@@ -184,6 +197,7 @@ public class UserAccount {
 	{
 		return this.toJSONObject().toString();
 	}
+	
 	public JSONObject toJSONObject()
 	{
 		JSONObject json = new JSONObject();
@@ -195,6 +209,7 @@ public class UserAccount {
 		}
 		return json;
 	}
+	
 	public String list() {
 		return this.toString();
 	}

@@ -11,6 +11,7 @@ import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;
 
 public class SMSSetting {
+	
 	private String connectionType = "";
 	private String smsCenter = "";
 	private int incommingInterval = 0;
@@ -20,11 +21,11 @@ public class SMSSetting {
 	public JSONObject toJSONObject()
 	{
 		JSONObject smsSetting = new JSONObject();
-		smsSetting.put("connectionType", this.connectionType);
-		smsSetting.put("smsCenter", this.smsCenter);
-		smsSetting.put("incommingInterval", this.incommingInterval);
-		smsSetting.put("timeRange", this.timeRange);
-		smsSetting.put("maxPerTimeRange", this.maxPerTimeRange);
+		smsSetting.put(JsonKey.CONNECTION_TYPE, this.connectionType);
+		smsSetting.put(JsonKey.SMS_CENTER, this.smsCenter);
+		smsSetting.put(JsonKey.INCOMMING_INTERVAL, this.incommingInterval);
+		smsSetting.put(JsonKey.TIME_RANGE, this.timeRange);
+		smsSetting.put(JsonKey.MAX_PER_TIME_RANGE, this.maxPerTimeRange);
 		return smsSetting;
 	}
 	
@@ -67,11 +68,11 @@ public class SMSSetting {
 			try
 			{
 				JSONObject smsSetting = new JSONObject(text);
-				this.connectionType = smsSetting.optString("connectionType", "");
-				this.smsCenter = smsSetting.optString("smsCenter", "");
-				this.incommingInterval = smsSetting.optInt("incommingInterval", 0);
-				this.timeRange = smsSetting.optInt("timeRange", 0);
-				this.maxPerTimeRange = smsSetting.optInt("maxPerTimeRange", 0);
+				this.connectionType = smsSetting.optString(JsonKey.CONNECTION_TYPE, "");
+				this.smsCenter = smsSetting.optString(JsonKey.SMS_CENTER, "");
+				this.incommingInterval = smsSetting.optInt(JsonKey.INCOMMING_INTERVAL, 0);
+				this.timeRange = smsSetting.optInt(JsonKey.TIME_RANGE, 0);
+				this.maxPerTimeRange = smsSetting.optInt(JsonKey.MAX_PER_TIME_RANGE, 0);
 			}
 			catch(JSONException e)
 			{
@@ -100,6 +101,7 @@ public class SMSSetting {
 			d1.mkdir();
 		}		
 	}
+	
 	private String getBaseDir()
 	{
 		return UserAccount.class.getResource("/").getFile();
