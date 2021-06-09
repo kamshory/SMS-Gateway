@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import javax.annotation.PostConstruct;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -20,15 +21,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.planetbiru.cons.JsonKey;
 import com.planetbiru.cons.MessageBrokerCommand;
+import com.planetbiru.tools.Message;
+import com.planetbiru.tools.MessageDecoder;
+import com.planetbiru.tools.MessageEncoder;
+import com.planetbiru.tools.ServletAwareConfigurator;
+import com.planetbiru.user.UserAccount;
 import com.planetbiru.util.Utility;
-import com.planetbiru.wstools.Message;
-import com.planetbiru.wstools.MessageDecoder;
-import com.planetbiru.wstools.MessageEncoder;
-import com.planetbiru.wstools.ServletAwareConfigurator;
 
 @Component
 @ServerEndpoint(value = "/websocket", 
@@ -36,7 +39,12 @@ import com.planetbiru.wstools.ServletAwareConfigurator;
 	decoders = MessageDecoder.class, 
 	encoders = MessageEncoder.class)
 public class ServerWebSocket {
+	
+	@Value("${sms.path.setting.user}")
+	private String userSettingPath;
 
+	UserAccount userAccount = new UserAccount();
+	
 	private Session session;
 	private String clientIP = "";
 	private Map<String, List<String>> requestHeader = new HashMap<>();
@@ -45,31 +53,45 @@ public class ServerWebSocket {
 	private String sessionID = "";
     private String username = "";
     private String channel = "";
-	
+
+    
 	private static Set<ServerWebSocket> listeners = new CopyOnWriteArraySet<>();
     
     private static Logger logger = LogManager.getLogger(ServerWebSocket.class);   
     
     Random rand = new Random();
     
+    
+    @PostConstruct
+    public void init()
+    {
+    	userAccount = new UserAccount(userSettingPath);
+    }
+    
 	@SuppressWarnings("unchecked")
 	@OnOpen
     public void onOpen(Session session, EndpointConfig config) {
-		System.out.println("Receive WS Request...");
         this.session = session;
         this.clientIP = (String) config.getUserProperties().get("remote_address");
         Map<String, List<String>> requestHdr = (Map<String, List<String>>) config.getUserProperties().get("request_header");
         Map<String, List<String>> responseHdr = (Map<String, List<String>>) config.getUserProperties().get("response_header");
-        Map<String, List<String>> param = (Map<String, List<String>>) config.getUserProperties().get("parameter");       
+        Map<String, List<String>> param = (Map<String, List<String>>) config.getUserProperties().get("parameter");  
+        
         
         this.requestHeader = requestHdr;
         this.responseHeader = responseHdr;
         this.parameter = param;
-        logger.info(requestHdr);
         this.sessionID = Utility.sha1(""+System.currentTimeMillis()+rand.nextInt(1000000000));
         
-        listeners.add(this);
-        this.sendWelcomeMessage();
+        boolean auth = true;
+        auth = userAccount.checkUserAuth(requestHdr);
+        
+        if(auth)
+        {
+            listeners.add(this);
+            this.sendWelcomeMessage();
+        }
+
 	}
 	private void sendWelcomeMessage() {
 		String welcomeMessage = this.createWelcomeMessage();	

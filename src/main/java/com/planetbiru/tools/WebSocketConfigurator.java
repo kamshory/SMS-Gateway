@@ -1,4 +1,4 @@
-package com.planetbiru.wstools;
+package com.planetbiru.tools;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -4,31 +4,35 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-
-import javax.annotation.PostConstruct;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Service;
-
 import com.planetbiru.cons.JsonKey;
 import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;
 
-@Service
 public class UserAccount {
+	
 	private static final Logger logger = LoggerFactory.getLogger(UserAccount.class);
-	@Value("${sms.path.setting.user}")
-	private String path;
+	private String path = "/static/data/user/urses.json";
 	
 	private Map<String, User> users = new HashMap<>();
 	
+	public UserAccount(String userSettingPath) {
+		this.path = userSettingPath;
+		this.init();
+	}
+
+	public UserAccount() {
+		this.init();
+	}
+
 	public void addUser(User user)
 	{
 		this.users.put(user.getUsername(), user);
@@ -98,7 +102,12 @@ public class UserAccount {
 	public void deleteUser(String username) {
 		this.users.remove(username);
 	}
-	
+	public boolean checkUserAuth(Map<String, List<String>> headers) {
+		CookieServer cookie = new CookieServer(headers);
+		String username = cookie.getSessionData().optString(JsonKey.USERNAME, "");
+		String password = cookie.getSessionData().optString(JsonKey.PASSWORD, "");
+		return this.checkUserAuth(username, password);
+	}
 	public boolean checkUserAuth(HttpHeaders headers)
 	{
 		CookieServer cookie = new CookieServer(headers);
@@ -116,10 +125,14 @@ public class UserAccount {
 		return user.getPassword().equals(password);
 	}
 	
-	@PostConstruct
 	public void init()
 	{
-		String fileName = this.getBaseDir() + path;
+		String dir = this.getBaseDir();
+		if(dir.endsWith("/") && path.startsWith("/"))
+		{
+			dir = dir.substring(0, dir.length() - 1);
+		}
+		String fileName = dir + path;
 		this.prepareDir(fileName);
 		this.load(fileName);
 	}

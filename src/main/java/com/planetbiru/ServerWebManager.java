@@ -31,6 +31,7 @@ import com.planetbiru.cookie.CookieServer;
 import com.planetbiru.gsm.SMSInstance;
 import com.planetbiru.settings.FeederSetting;
 import com.planetbiru.settings.SMSSetting;
+import com.planetbiru.tools.WebContent;
 import com.planetbiru.user.User;
 import com.planetbiru.user.UserAccount;
 import com.planetbiru.util.FileNotFoundException;
@@ -39,7 +40,7 @@ import com.planetbiru.util.Utility;
 import com.planetbiru.ws.WebSocketClient;
 
 @RestController
-public class RequestHandler {
+public class ServerWebManager {
 
 	@Autowired
 	SMSInstance smsService;
@@ -47,8 +48,7 @@ public class RequestHandler {
 	@Autowired
 	WebSocketClient wsClient;
 	
-	@Autowired
-	UserAccount userAccount;
+	UserAccount userAccount = new UserAccount();
 
 	@Value("${sms.connection.type}")
 	private String portName;
@@ -82,6 +82,8 @@ public class RequestHandler {
 
 	private MIMEonfig mime = new MIMEonfig();
 	
+	@Value("${sms.path.setting.user}")
+	private String userSettingPath;
 
 
 	
@@ -89,6 +91,7 @@ public class RequestHandler {
 	public void init()
 	{
 		initConfig();
+		userAccount = new UserAccount(userSettingPath);
 		if(Config.isServiceEnabled())
 		{
 			initSerial();

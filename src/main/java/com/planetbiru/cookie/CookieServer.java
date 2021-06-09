@@ -34,6 +34,10 @@ public class CookieServer {
 	{
 		
 	}
+	public CookieServer(Map<String, List<String>> headers) {
+		this.parseCookie(headers);
+		this.updateSessionID();
+	}
 	public CookieServer(HttpHeaders headers)
 	{
 		this.parseCookie(headers);
@@ -103,11 +107,19 @@ public class CookieServer {
 		}
 		this.setCookie(list);
 	}
+	private void parseCookie(Map<String, List<String>> headers) {
+		List<String> rawCookies = headers.get("cookie");
+		this.parseCookie(rawCookies);
+	}
 	private void parseCookie(HttpHeaders headers)
+	{
+		List<String> rawCookies = headers.get("cookie");
+		this.parseCookie(rawCookies);
+	}
+	private void parseCookie(List<String> rawCookies)
 	{
 		URLCodec urlCodec = new URLCodec();
 		Map<String, CookieItem> list = new HashMap<>();
-		List<String> rawCookies = headers.get("cookie");
 		if(rawCookies != null)
 		{
 			for(int i = 0; i<rawCookies.size(); i++)

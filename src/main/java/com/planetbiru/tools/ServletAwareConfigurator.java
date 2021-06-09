@@ -1,4 +1,4 @@
-package com.planetbiru.wstools;
+package com.planetbiru.tools;
 
 import java.lang.reflect.Field;
 import java.util.List;

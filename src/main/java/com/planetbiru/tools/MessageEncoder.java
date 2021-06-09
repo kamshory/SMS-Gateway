@@ -1,4 +1,4 @@
-package com.planetbiru.wstools;
+package com.planetbiru.tools;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;

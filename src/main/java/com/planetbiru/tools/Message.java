@@ -1,4 +1,4 @@
-package com.planetbiru.wstools;
+package com.planetbiru.tools;
 
 import org.json.JSONException;
 import org.json.JSONObject;
