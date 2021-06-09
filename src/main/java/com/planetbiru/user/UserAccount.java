@@ -18,9 +18,9 @@ import com.planetbiru.util.FileNotFoundException;
 import com.planetbiru.util.FileUtil;
 
 public class UserAccount {
-	
+	private static final String USER_FILE = "/static/data/user/urses.json";
 	private static final Logger logger = LoggerFactory.getLogger(UserAccount.class);
-	private String path = "/static/data/user/urses.json";
+	private String path = USER_FILE;
 	
 	private Map<String, User> users = new HashMap<>();
 	
@@ -127,14 +127,7 @@ public class UserAccount {
 	
 	public void init()
 	{
-		String dir = this.getBaseDir();
-		if(dir.endsWith("/") && path.startsWith("/"))
-		{
-			dir = dir.substring(0, dir.length() - 1);
-		}
-		String fileName = dir + path;
-		this.prepareDir(fileName);
-		this.load(fileName);
+		this.load();
 	}
 	
 	private void prepareDir(String fileName) {
@@ -161,8 +154,15 @@ public class UserAccount {
 		return UserAccount.class.getResource("/").getFile();
 	}
 	
-	public void load(String fileName)
+	public void load()
 	{
+		String dir = this.getBaseDir();
+		if(dir.endsWith("/") && path.startsWith("/"))
+		{
+			dir = dir.substring(0, dir.length() - 1);
+		}
+		String fileName = dir + path;
+		this.prepareDir(fileName);
 		try 
 		{
 			byte[] data = FileUtil.read(fileName);
