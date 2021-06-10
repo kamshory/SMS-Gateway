@@ -30,8 +30,8 @@ import com.planetbiru.tools.Message;
 import com.planetbiru.tools.MessageDecoder;
 import com.planetbiru.tools.MessageEncoder;
 import com.planetbiru.tools.ServletAwareConfigurator;
+import com.planetbiru.user.Account;
 import com.planetbiru.user.NoUserRegisteredException;
-import com.planetbiru.user.UserAccount;
 import com.planetbiru.util.Utility;
 
 @Component
@@ -44,8 +44,6 @@ public class ServerWebSocket {
 	@Value("${sms.path.setting.user}")
 	private String userSettingPath;
 
-	private UserAccount userAccount;
-	
 	private Session session;
 	private String clientIP = "";
 	private Map<String, List<String>> requestHeader = new HashMap<>();
@@ -62,12 +60,10 @@ public class ServerWebSocket {
     Random rand = new Random();
     
     
-    
-    
     @PostConstruct
     public void init()
     {
-    	userAccount = new UserAccount(userSettingPath);
+    	Account.init(userSettingPath);
     }
     
 	@SuppressWarnings("unchecked")
@@ -87,14 +83,16 @@ public class ServerWebSocket {
         boolean auth = true;
         try 
         {
-			auth = userAccount.checkUserAuth(requestHdr);
+        	auth = Account.getUserAccount().checkUserAuth(requestHdr);
 		} 
         catch (NoUserRegisteredException e) 
         {
 			/**
 			 * Do nothing
 			 */
+        	e.printStackTrace();
 		}
+        
         
         if(auth)
         {

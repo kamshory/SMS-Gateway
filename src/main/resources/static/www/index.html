@@ -19,6 +19,13 @@
     <script src="lib.assets/js/ie10-viewport-bug-workaround.js"></script>    
     <script src="lib.assets/js/jquery.min.js"></script>
     <script src="lib.assets/js/bootstrap.js"></script>
+    <script src="lib.assets/js/ws.js"></script>
+    <script>
+      function handleIncommingMessage(message)
+      {
+        console.log("handleIncommingMessage", message);     
+      }      
+    </script>
   </head>
 
   <body>
@@ -70,113 +77,7 @@
     <!-- /container -->
   </div>
   <script>
-    var hostName = location.hostname; 
-    var portNumber = location.port;
-    var scheme = location.protocol;
-    var wsURL = createBaseURL(scheme, hostName, portNumber)+"/websocket";
-    var ws = null;
-    var wsConnected = false;
-    var connetionInterval = setTimeout('', 1000);
-
-    function createBaseURL(scheme, hostName, portNumber)
-    {
-      var url = "";
-      if(scheme.indexOf("https") != -1)
-      {
-        if(typeof portNumber == 'undefined' || portNumber == '')
-        {
-          url = "wss://"+hostName; 
-        }
-        else if(portNumber == 443)
-        {
-          url = "wss://"+hostName; 
-        }
-        else
-        {
-          url = "wss://"+hostName+":"+portNumber;
-        }
-      }
-      else
-      {
-        if(typeof portNumber == 'undefined' || portNumber == '')
-        {
-          url = "ws://"+hostName; 
-        }
-        else if(portNumber == 80)
-        {
-          url = "ws://"+hostName; 
-        }
-        else
-        {
-          url = "ws://"+hostName+":"+portNumber;
-        }
-      }
-      return url;
-    }
-
-    function initWebSocket()
-    {
-        if ("WebSocket" in window) 
-        {
-            connectWebSocket();
-        } 
-        else 
-        {
-            console.log("WebSocket is not supported by your browser!");
-        }
-    }
-    function connectWebSocket()
-    {
-        console.log("Connecting...");
-        wsConnected = false;
-        ws = new WebSocket(wsURL);
-            
-        ws.onopen = function() {	   
-            wsConnected = true;
-            console.log("Connected");
-        };
-        
-        ws.onmessage = function (evt) { 
-            var received_msg = evt.data;
-            if(typeof handleIncommingMessage != 'undefined')
-            {
-                handleIncommingMessage(received_msg);
-            }
-        };
-        
-        ws.onclose = function() { 	   
-            wsConnected = false;
-            console.log("Connection is closed..."); 
-            clearTimeout(connectWebSocket);
-            connetionInterval = setTimeout(function(){
-                connectWebSocket();
-                if(wsConnected)
-                {
-                    clearTimeout(connectWebSocket);
-                }
-            }, 2000);
-        };
-        ws.onError = function()
-        {
-            console.log("An error. occured.."); 
-            wsConnected = false;
-            clearTimeout(connectWebSocket);
-            connetionInterval = setTimeout(function(){
-                connectWebSocket();
-                if(wsConnected)
-                {
-                    clearTimeout(connectWebSocket);
-                }
-            }, 2000);
-        }
-    }
-    window.onload = function(e){
-        initWebSocket();
-    }
-    function handleIncommingMessage(message)
-    {
-        console.log(message);
-    }
+    
 
 </script>
 </body>

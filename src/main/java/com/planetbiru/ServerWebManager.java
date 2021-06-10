@@ -2,6 +2,7 @@ package com.planetbiru;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -134,15 +135,39 @@ public class ServerWebManager {
 		wsClient.start();	
 	}
 	
-	@GetMapping(path="/broadcast-ws")
+	@GetMapping(path="/broadcast-message")
 	public ResponseEntity<byte[]> broadcast(@RequestHeader HttpHeaders headers, HttpServletRequest request)
 	{
 		HttpHeaders responseHeaders = new HttpHeaders();
 		byte[] responseBody = "".getBytes();
 		HttpStatus statusCode = HttpStatus.OK;
-		ServerWebSocket.broadcast("Halooooo.. ini pesannya....");
+		
+		String message = Utility.date("yyyy-MM-dd HH:mm:ss.SSS")+" This page uses the non standard property “zoom”. Consider using calc() in the relevant property values, or using “transform” along with “transform-origin: 0 0...";
+		this.broardcastWebSocket(message);
+		
 		return (new ResponseEntity<>(responseBody, responseHeaders, statusCode));	
 	}
+	
+	
+	public void broardcastWebSocket(String message)
+	{
+		JSONObject messageJSON = new JSONObject();
+		messageJSON.put("command", "broadcast-message");
+		JSONArray data = new JSONArray();
+		JSONObject itemData = new JSONObject();
+		String uuid = UUID.randomUUID().toString();
+		itemData.put("id", uuid);
+		itemData.put("message", message);
+		data.put(itemData);
+		messageJSON.put("data", data);
+		
+		ServerWebSocket.broadcast(messageJSON.toString(4));
+		
+	}
+	
+	
+	
+	
 
 	
 	@PostMapping(path="/login.html")
@@ -678,12 +703,7 @@ public class ServerWebManager {
 				}
 				if(path.equals("/sms.html"))
 				{
-					try {
-						this.processSMS(requestBody);
-					} catch (GSMNotInitalizedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					this.processSMS(requestBody);
 				}
 			}
 		} 
@@ -847,15 +867,24 @@ public class ServerWebManager {
 		}		
 	}
 	
-	private void processSMS(String requestBody) throws GSMNotInitalizedException {
+	private void processSMS(String requestBody) {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		if(query.containsKey("send"))
 		{
 			String receiver = query.getOrDefault("receiver", "");			
-			String message = query.getOrDefault("message", "");		
-			smsService.sendSMS(receiver, message);
+			String message = query.getOrDefault("message", "");	
+			try {
+				this.broardcastWebSocket("Sending a message to "+receiver);
+				smsService.sendSMS(receiver, message);
+			} catch (GSMNotInitalizedException e) {
+				e.printStackTrace();
+			}
 		}		
 	}
+	
+	
+	
+	
 	
 	private void processAccount(String requestBody, CookieServer cookie) {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
@@ -1334,6 +1363,7 @@ public class ServerWebManager {
 							String receiver = dt.optString("receiver", "");
 							String textMessage = dt.optString("message", "");
 							try {
+								this.broardcastWebSocket("Send message to "+receiver);
 								this.smsService.sendSMS(receiver, textMessage);
 							} catch (GSMNotInitalizedException e) {
 								// TODO Auto-generated catch block

@@ -28,6 +28,17 @@ public class UserAccount {
 		this.path = userSettingPath;
 		this.init();
 	}
+	public void init(String userSettingPath)
+	{
+		this.path = userSettingPath;
+		this.load();
+	}
+	public void init()
+	{
+		this.load();
+	}
+	public UserAccount() {
+	}
 	public void addUser(User user)
 	{
 		this.users.put(user.getUsername(), user);
@@ -131,10 +142,6 @@ public class UserAccount {
 		return user.getPassword().equals(password);
 	}
 	
-	public void init()
-	{
-		this.load();
-	}
 	
 	private void prepareDir(String fileName) {
 		File file = new File(fileName);
@@ -198,6 +205,7 @@ public class UserAccount {
 			}
 		}
 	}
+	
 	
 	public void save()
 	{
