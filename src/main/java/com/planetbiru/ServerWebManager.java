@@ -886,6 +886,7 @@ public class ServerWebManager {
 	
 	
 	
+	
 	private void processAccount(String requestBody, CookieServer cookie) {
 		Map<String, String> query = Utility.parseURLEncoded(requestBody);
 		String loggedUsername = (String) cookie.getSessionValue(JsonKey.USERNAME, "");
@@ -1350,26 +1351,14 @@ public class ServerWebManager {
 			String command = requestJSON.optString("command", "");
 			if(command.equals("send-message"))
 			{
-				JSONArray data = requestJSON.optJSONArray("data");
+				JSONArray data = requestJSON.optJSONArray(JsonKey.DATA);
 				if(data != null && !data.isEmpty())
 				{
 					int length = data.length();
 					int i;
 					for(i = 0; i<length; i++)
 					{
-						JSONObject dt = data.getJSONObject(i);
-						if(dt != null)
-						{
-							String receiver = dt.optString("receiver", "");
-							String textMessage = dt.optString("message", "");
-							try {
-								this.broardcastWebSocket("Send message to "+receiver);
-								this.smsService.sendSMS(receiver, textMessage);
-							} catch (GSMNotInitalizedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
+						this.sendMessage(data.getJSONObject(i));					
 					}
 				}
 			}
@@ -1381,6 +1370,24 @@ public class ServerWebManager {
 			 */
 		}
 		return requestJSON;
+	}
+	
+	public void sendMessage(JSONObject data)
+	{
+		if(data != null)
+		{
+			String receiver = data.optString("receiver", "");
+			String textMessage = data.optString("message", "");
+			try 
+			{
+				this.smsService.sendSMS(receiver, textMessage);
+			} 
+			catch (GSMNotInitalizedException e) 
+			{
+				
+				e.printStackTrace();
+			}
+		}		
 	}
 
 }

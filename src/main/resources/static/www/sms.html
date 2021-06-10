@@ -93,14 +93,14 @@
           {
             var receiver = $('#receiver').val();
             var message = $('#message').val();
-            console.log(receiver, message)
             $.ajax({
               'type':'POST',
               'url':'sms.html',
               'data':{receiver:receiver, message:message, send:'send'},
               success:function(data)
               {
-
+                $('#receiver').val('');
+                $('#message').val('');
               }
             });
             return false;
