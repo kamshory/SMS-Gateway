@@ -5,11 +5,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1; user-scalable=no">
-    <meta name="description" content="SMS Gateway">
+    <meta name="description" content="OTP Broker">
     <meta name="author" content="Planetbiru">
     <meta name="require-login" content="true" data-file="/login-form.html">
     <link rel="icon" href="favicon.ico">  
-    <title>SMS Gateway</title>
+    <title>OTP Broker</title>
     <link href="lib.assets/css/bootstrap.css" rel="stylesheet">
     <link href="lib.assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
     <link href="lib.assets/css/navbar.css" rel="stylesheet">
@@ -35,13 +35,14 @@
       <nav class="navbar navbar-default">
         <div class="container-fluid">
           <div class="navbar-header">
+			<span class="usb-device-symbol"></span>
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
               <span class="sr-only">Toggle navigation</span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="./">SMS Gateway</a>
+            <a class="navbar-brand" href="./">OTP Broker</a>
           </div>
           
                   <div id="navbar" class="navbar-collapse collapse">
@@ -53,12 +54,21 @@
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Settings <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                   <li class=""><a href="admin.html">Administrator Setting</a></li>
+                  <li class=""><a href="api-setting.html">API Setting</a></li>
+                  <li class=""><a href="api-user.html">API User</a></li>
                   <li class=""><a href="feeder-setting.html">Feeder Setting</a></li>
-                  <li class="active "><a href="sms-setting.html">SMS Setting</a></li>
+                  <li class="active"><a href="sms-setting.html">SMS Setting</a></li>
+                  <li class=""><a href="modem.html">Modem</a></li>
+                  <li class=""><a href="email-setting.html">Email Setting</a></li>
+                  <li class=""><a href="ddns-record.html">DDNS Record</a></li>
                   <li role="separator" class="divider"></li>
                   <li class="dropdown-header">Other Configs</li>
-                  <li><a href="#">Config 1</a></li>
-                  <li><a href="#">Config 2</a></li>
+                  <li class=""><a href="network-setting.html">Network Setting</a></li>
+                  <li class=""><a href="keystore.html">Keystore</a></li>
+                  <li class=""><a href="cloudflare.html">Cloudflare</a></li>
+                  <li class=""><a href="noip.html">No IP</a></li>
+                  <li class=""><a href="dynu.html">Dynu</a></li>
+                  <li class=""><a href="afraid.html">Afraid</a></li>
                 </ul>
               </li>
             </ul>
@@ -76,13 +86,13 @@
           <table class="config-table config-table-connection">
             <tbody>
               <tr>
-                <td>Connection Type</td>
-                <td><input type="text" name="connection_type" id="connection_type" value="usb/tty">	
+                <td>Country Code</td>
+                <td><input type="number" name="country_code" id="country_code" value="">	
                 </td>
               </tr>
               <tr>
-                <td>SMS Center</td>
-                <td><input type="text" name="sms_center" id="sms_center" value="+62811000000">	
+                <td>Send Incomming SMS</td>
+                <td><label><input type="checkbox" name="send_incomming_sms" id="send_incomming_sms" value="1">	Yes</label>
                 </td>
               </tr>
               <tr>
@@ -104,8 +114,7 @@
                 <td></td>
                 <td>
                 <input type="submit" class="btn btn-success" name="save_sms_setting" id="save_sms_setting" value="Save">	
-                <input type="button" class="btn btn-primary" name="detect_device" id="detect_device" value="Detect Device">	
-                <input type="reset" class="btn btn-default" class="btn btn-default" value="Reset">	
+                <input type="reset" class="btn btn-default" value="Reset">	
                 </td>
               </tr>
             </tbody>
@@ -119,11 +128,11 @@
                     url:"sms-setting/get",
                     dataType:"json",
                     success:function(data){
-                        $('input[name="connection_type"]').val(data.connectionType);
-                        $('input[name="sms_center"]').val(data.smsCenter);
-                        $('input[name="incomming_interval"]').val(data.incommingInterval+"");
-                        $('input[name="time_range"]').val(data.timeRange+"");
-                        $('input[name="max_per_time_range"]').val(data.maxPerTimeRange+"");
+                      $('input[name="send_incomming_sms"]').prop("checked", data.sendIncommingSMS);
+                      $('input[name="incomming_interval"]').val(data.incommingInterval+"");
+                      $('input[name="country_code"]').val(data.countryCode);
+                      $('input[name="time_range"]').val(data.timeRange+"");
+                      $('input[name="max_per_time_range"]').val(data.maxPerTimeRange+"");
                     }
                 });
             });

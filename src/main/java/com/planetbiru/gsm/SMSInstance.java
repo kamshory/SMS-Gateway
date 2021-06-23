@@ -2,11 +2,13 @@ package com.planetbiru.gsm;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
+import com.fazecast.jSerialComm.SerialPortInvalidPortException;
+import com.planetbiru.constant.ConstantString;
 
-@Service
 public class SMSInstance {
 	private GSM gsm;
+	private boolean connected = false;
+	private String id = "";
 	public SMSInstance()
 	{
 		/**
@@ -14,31 +16,64 @@ public class SMSInstance {
 		 */
 		this.gsm = new GSM();
 	}
-	public boolean init(String port)
+	public boolean connect(String port) throws GSMException 
 	{
-		return this.gsm.initialize(port);
+		try
+		{
+			return this.gsm.connect(port);
+		}
+		catch(SerialPortInvalidPortException e)
+		{
+			throw new GSMException(e);
+		}
 	}
-	public void close() throws GSMNotInitalizedException {
+	public void disconnect() throws GSMException {
 		if(this.gsm.getSerialPort() == null)
 		{
-			throw new GSMNotInitalizedException("Serial port is null");
+			throw new GSMException(ConstantString.SERIAL_PORT_NULL);
 		}
 		this.gsm.closePort();
 	}
-	public String sendSMS(String receiver, String message) throws GSMNotInitalizedException
+	public String sendSMS(String receiver, String message) throws GSMException
 	{
 		if(this.gsm.getSerialPort() == null)
 		{
-			throw new GSMNotInitalizedException("Serial port is null");
+			throw new GSMException(ConstantString.SERIAL_PORT_NULL);
 		}
 		return this.gsm.sendSMS(receiver, message);
 	}
-	public List<SMS> readSMS() throws GSMNotInitalizedException
+	public List<SMS> readSMS() throws GSMException
 	{
 		if(this.gsm.getSerialPort() == null)
 		{
-			throw new GSMNotInitalizedException("Serial port is null");
+			throw new GSMException(ConstantString.SERIAL_PORT_NULL);
 		}
 		return this.gsm.readSMS();
 	}
+	public String executeUSSD(String ussd) throws GSMException {
+		if(this.gsm.getSerialPort() == null)
+		{
+			throw new GSMException(ConstantString.SERIAL_PORT_NULL);
+		}
+		return this.gsm.executeUSSD(ussd);
+		
+	}
+	public boolean isClosed()
+	{
+		return this.gsm.isClosed();
+	}
+	public boolean isConnected() {
+		return connected;
+	}
+	public void setConnected(boolean connected) {
+		this.connected = connected;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	
 }

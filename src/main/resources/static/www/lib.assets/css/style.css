@@ -67,7 +67,11 @@ legend{
 		width:200px;
 	}
 }
+.config-table tr td select,
 .config-table tr td input[type="text"],
+.config-table tr td input[type="url"],
+.config-table tr td input[type="email"],
+.config-table tr td input[type="tel"],
 .config-table tr td input[type="number"],
 .config-table tr td input[type="password"],
 .config-table tr td select
@@ -79,10 +83,16 @@ legend{
 	background-color:#FFFFFF;
 }
 .config-table tr td input[type="text"]:focus,
+.config-table tr td input[type="email"]:focus,
+.config-table tr td input[type="url"]:focus,
+.config-table tr td input[type="tel"]:focus,
 .config-table tr td input[type="number"]:focus,
 .config-table tr td input[type="password"]:focus,
 .config-table tr td select:focus,
 .config-table tr td input[type="text"]:active,
+.config-table tr td input[type="url"]:active,
+.config-table tr td input[type="email"]:active,
+.config-table tr td input[type="tel"]:active,
 .config-table tr td input[type="number"]:active,
 .config-table tr td input[type="password"]:active,
 .config-table tr td select:active
@@ -90,6 +100,9 @@ legend{
   outline: none;
 }
 .config-table tr td input[type="text"],
+.config-table tr td input[type="url"],
+.config-table tr td input[type="email"],
+.config-table tr td input[type="tel"],
 .config-table tr td input[type="number"],
 .config-table tr td input[type="password"]{
 	padding:7px 11px;
@@ -277,13 +290,14 @@ button span.number{
     border: 1px solid #DDDDDD;
 }
 
-.input-phone-number, .text-message{
+.input-text, .input-phone-number, .text-message{
     padding: 5px 10px;
     width: 100%;
     box-sizing: border-box;
     border: 1px solid #DDDDDD;
 }
 .text-message:focus, .text-message:active,
+.input-text:focus, .input-text:active
 .input-phone-number:focus, .input-phone-number:active{
     outline: none;
 }
@@ -292,8 +306,6 @@ button span.number{
     margin-bottom: 10px;
     position: relative;
 
-}
-.input-phone-number{
 }
 .text-message{
     height: 100px;
@@ -465,4 +477,79 @@ border: 1px solid #DDDDDD;
 }
 .notification-message{
   padding-left: 4px;
+}
+
+.server-into-item{
+  position: relative;
+  margin-bottom: 10px;
+}
+.info-label{
+  padding: 4px 0;
+}
+.info-value{
+  position: absolute;
+  right: 0;
+  text-align: right;
+  top: 4px;
+}
+.info-progress{
+  width: 100%;
+  border: 1px solid #DDDDDD;
+  background-color: #FEFEFE;
+  border-radius:5px;
+}
+.info-progress-inner{
+  height: 10px;
+  background-color: #3B82F2;
+  box-sizing: border-box;
+  position: relative;
+}
+.usb-device-symbol{
+display: inline-block; padding-top: 14px; padding-right: 10px; width: 62px;
+}
+
+.service-item.enable.disconnected{
+  background-color: #D83A56;
+  color: #FFFFFF;
+}
+.service-item.enable.connected{
+  background-color: #66DE93;
+}
+.service-item.disable.connected, .service-item.disable.disconnected{
+  background-color: #F9F3F3;
+}
+
+.service-wrapper {  
+  display: flex;
+  flex-flow: row wrap;
+  gap: 20px;
+}
+
+.service-wrapper .service-item {
+  box-sizing: border-box;
+  border: 1px solid #DDDDDD;
+  background: white;
+  height: 80px;
+  width: calc( (100% / 2) - 10px );
+  padding: 10px;
+}
+
+.service-wrapper .feature {
+  width: calc( ( ( 100% / 3 ) * 2) - 20px );
+}
+@media (max-width: 480px) {
+  .service-wrapper .service-item {
+    width: 100%;
+    margin:0px;
+  }
+}
+.status-connection{
+  margin-bottom: 10px;
+}
+.service-button{
+  padding-top: 5px;;
+}
+
+.button-area button, .button-area input[type="button"], .button-area input[type="reset"], .button-area input[type="submit"]{
+  margin-bottom: 5px;
 }

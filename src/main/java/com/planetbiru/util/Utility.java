@@ -17,61 +17,28 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import com.planetbiru.cons.ConstantString;
+import org.json.JSONException;
+import org.json.JSONObject;
+import com.planetbiru.config.Config;
+import com.planetbiru.constant.ConstantString;
 
 public class Utility {
-	
-	private static final Logger logger = LogManager.getLogger(Utility.class);
+
+	private static Logger logger = LogManager.getLogger(Utility.class);
 	private Utility()
 	{
 		
 	}
-
-	public static Map<String, String> parseURLEncoded(String data)
-	{
-		Map<String, String> queryPairs = new LinkedHashMap<>();
-		String[] pairs = data.split("&");
-		int index = 0;
-	    for (String pair : pairs) 
-	    {
-	        int idx = pair.indexOf("=");
-	        try 
-	        {
-	        	String key = Utility.fixURLEncodeKey(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), index);
-				queryPairs.put(key, URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
-			} 
-	        catch (UnsupportedEncodingException e) 
-	        {
-				e.printStackTrace();
-			}
-	        index++;
-	    }
-		return queryPairs;
-	}
-
-	private static String fixURLEncodeKey(String key, int index) 
-	{
-		return key.replace("[]", "["+index+"]");
-	}
-
-	public static List<String> asList(String input) 
-	{
-		List<String> list = new ArrayList<>();
-		list.add(input);
-		return list;
-	}
-	
 	/**
 	 * Get current time with specified format
 	 * @return Current time with format yyyy-MM-dd
@@ -436,16 +403,6 @@ public class Utility {
 	    cal.add(Calendar.DATE, +1);
 	    return cal.getTime();		
 	}
-	/**
-	 * Date tomorrow
-	 * @return Date tomorrow
-	 */
-	public static Date nextDay(int n)
-	{
-	    final Calendar cal = Calendar.getInstance();
-	    cal.add(Calendar.DATE, n);
-	    return cal.getTime();		
-	}
 	public static Date dateBefore(String dateTime, String format, int nDay) throws ParseException
 	{
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
@@ -482,259 +439,285 @@ public class Utility {
 		result = str.toString();
 		return result;
 	}
+	/**
+	 * Escape JSON
+	 * @param input Input string
+	 * @return Escaped string
+	 */
+	public static String escapeJSON(String input) 
+	{
+		String output = "";
+		if(input != null)
+		{
+			output = input.replace("\"", "\\\"");
+			output = output.replace("/", "\\/");
+		}
+		return output;
+	}
+	/**
+	 * Strip characters from the beginning of a string
+	 * @param input String to be stripped
+	 * @param mask Character mask to strip string
+	 * @return Stripped string
+	 */
+	public static String lTrim(String input, String mask)
+	{
+		int lastLen;
+		int curLen;
+		do
+		{
+			lastLen = input.length();
+			input = input.replaceAll("^"+mask, "");
+			curLen = input.length();
+		}
+		while (curLen < lastLen);
+		return input;
+	}
+	/**
+	 * Strip characters from the end of a string
+	 * @param input String to be stripped
+	 * @param mask Character mask to strip string
+	 * @return Stripped string
+	 */
+	public static String rTrim(String input, String mask)
+	{
+		int lastLen;
+		int curLen;
+		do
+		{
+			lastLen = input.length();
+			input = input.replaceAll(mask+"$", "");
+			curLen = input.length();
+		}
+		while (curLen < lastLen);
+		return input;
+	}
+	/**
+	 * Get N right string
+	 * @param input Input string
+	 * @param length Expected length
+	 * @return N right string
+	 */
+	public static String right(String input, int length)
+	{
+		if(length >= input.length())
+		{
+			return input;
+		}
+		else
+		{
+			return input.substring(input.length() - length, input.length());
+		}
+	}
+	/**
+	 * Get N left string
+	 * @param input Input string
+	 * @param length Expected length
+	 * @return N left string
+	 */
+	public static String left(String input, int length)
+	{
+		if(length >= input.length())
+		{
+			return input;
+		}
+		else
+		{
+			return input.substring(0, length);
+		}
+	}
+	/**
+	 * Padding on left side
+	 * @param input Input string
+	 * @param length Desired length
+	 * @param car Character to pad
+	 * @return Padded string
+	 */
+	public static String lPad(String input, int length, char car) 
+	{
+		if(input.length() > length)
+		{
+			return input;
+		}
+		String fmt = "%" + length + "s";
+		return (input + String.format(fmt, "").replace(" ", String.valueOf(car))).substring(0, length);
+	}
 
 	/**
-	 * Generate SHA-256 hash code from a string
+	 * Padding on right side
 	 * @param input Input string
-	 * @return SHA-256 hash code
+	 * @param length Desired length
+	 * @param car Character to pad
+	 * @return Padded string
 	 */
-	public static String sha256(String input)
+	public static String rPad(String input, int length, char car) 
 	{
-		String output = "";
-		if(input == null)
+		if(input.length() > length)
 		{
-			input = "";
+			return input;
 		}
-		try
-		{
-			MessageDigest digest = MessageDigest.getInstance(ConstantString.HASH_SHA256);
-			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-			output = Utility.bytesToHex(encodedhash);
-			return output;
-		}
-		catch(Exception e)
-		{
-			return "";
-		}
+		String fmt = "%" + length + "s";
+		return (String.format(fmt, "").replace(" ", String.valueOf(car)) + input).substring(input.length(), length + input.length());
 	}
-	
 	/**
-	 * Generate SHA-256 hash code from a string with specified encoding
-	 * @param input Input string
-	 * @param encode Encoding used
-	 * @return SHA-256 hash code
-	 * @throws EncodingException if encoding is invalid
+	 * Encode URL
+	 * @param input Clear URL
+	 * @return Decoded URL
 	 */
-	public static String sha256(String input, String encode) throws EncodingException
+	public static String urlEncode(String input) 
 	{
-		String output = "";
-		if(input == null)
+	   	String result = "";
+		try 
 		{
-			input = "";
-		}
-		try
+			result = java.net.URLEncoder.encode(input, ConstantString.UTF8);
+		} 
+		catch (UnsupportedEncodingException e) 
 		{
-			MessageDigest digest = MessageDigest.getInstance(ConstantString.HASH_SHA256);
-			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-			if(encode.equals(ConstantString.BASE_64))
-			{
-				output = Utility.base64Encode(encodedhash);
-			}
-			else if(encode.equals("hexa"))
-			{
-				output = Utility.bytesToHex(encodedhash);
-			}
-			else
-			{
-				throw new EncodingException(ConstantString.INVALID_ENCODING);
-			}
-			return output;
+			logger.error(e.getMessage());
 		}
-		catch(Exception e)
-		{
-			return "";
-		}
+    	return result;
 	}
-	
 	/**
-	 * Generate SHA-1 hash code from a string
-	 * @param input Input string
-	 * @return SHA-1 hash code
+	 * Decode URL
+	 * @param input Decoded URL
+	 * @return Clear URL
 	 */
-	public static String sha1(String input)
-	{
-		String output = "";
-		if(input == null)
+	public static String urlDecode(String input)
+    {
+    	String result = "";
+		try 
 		{
-			input = "";
-		}
-		try
+			result = java.net.URLDecoder.decode(input, ConstantString.UTF8);
+		} 
+		catch (UnsupportedEncodingException e) 
 		{
-			MessageDigest digest = MessageDigest.getInstance("SHA-1");
-			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-			output = Utility.bytesToHex(encodedhash);
-			return output;
+			logger.error(e.getMessage());
 		}
-		catch(Exception e)
-		{
-			return "";
-		}
-	}
-	
+    	return result;
+    }
 	/**
-	 * Generate SHA-1 hash code from a string with specified encoding
-	 * @param input Input string
-	 * @param encode Encoding used
-	 * @return SHA-1 hash code
-	 * @throws EncodingException if encoding is invalid
+	 * Parse query string into map
+	 * @param query Query string
+	 * @return Map contains query parsed
+	 * @throws UnsupportedEncodingException if character encoding is not supported
 	 */
-	public static String sha1(String input, String encode) throws EncodingException
+	public static Map<String, String> splitQuery(String query) throws UnsupportedEncodingException 
 	{
-		String output = "";
-		if(input == null)
-		{
-			input = "";
-		}
-		try
-		{
-			MessageDigest digest = MessageDigest.getInstance("SHA-1");
-			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-			if(encode.equals(ConstantString.BASE_64))
-			{
-				output = Utility.base64Encode(encodedhash);
-			}
-			else if(encode.equals("hexa"))
-			{
-				output = Utility.bytesToHex(encodedhash);
-			}
-			else
-			{
-				throw new EncodingException(ConstantString.INVALID_ENCODING);
-			}
-			return output;
-		}
-		catch(Exception e)
-		{
-			return "";
-		}
-	}
-	
-	/**
-	 * Generate SHA-1 with RSA hash code from a string with specified encoding
-	 * @param input Input string
-	 * @param encode Encoding used
-	 * @return SHA-1 with RSA hash code
-	 * @throws EncodingException if encoding is invalid
-	 */
-	public static String sha1WithRSA(String input, String encode) throws EncodingException
-	{
-		String output = "";
-		if(input == null)
-		{
-			input = "";
-		}
-		try
-		{
-			KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
-			PrivateKey privateKey = keyPair.getPrivate();
-			Signature instance = Signature.getInstance("SHA1withRSA");
-			instance.initSign(privateKey);
-			instance.update((input).getBytes());
-			byte[] signature = instance.sign();			
-			if(encode.equals(ConstantString.BASE_64))
-			{
-				output = Utility.base64Encode(signature);
-			}
-			else if(encode.equals("hexa"))
-			{
-				output = Utility.bytesToHex(signature);
-			}
-			else
-			{
-				throw new EncodingException(ConstantString.INVALID_ENCODING);
-			}
-			return output;
-		}
-		catch(Exception e)
-		{
-			return "";
-		}
-	}
-	
-	/**
-	 * Generate MD5 hash code from a string
-	 * @param input Input string
-	 * @return MD5 hash code
-	 */
-	public static String md5(String input)
-	{
-		String output = "";
-		if(input == null)
-		{
-			input = "";
-		}
-		try
-		{
-			MessageDigest digest = MessageDigest.getInstance("MD5");
-			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-			output = Utility.bytesToHex(encodedhash);
-			return output;
-		}
-		catch(Exception e)
-		{
-			return "";
-		}
-	}
-	
-	/**
-	 * Generate MD5 hash code from a string with specified encoding
-	 * @param input Input string
-	 * @param encode Encoding used
-	 * @return MD5 hash code
-	 * @throws EncodingException if encoding is invalid
-	 */
-	public static String md5(String input, String encode) throws EncodingException
-	{
-		String output = "";
-		if(input == null)
-		{
-			input = "";
-		}
-		try
-		{
-			MessageDigest digest = MessageDigest.getInstance("MD5");
-			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-			if(encode.equals(ConstantString.BASE_64))
-			{
-				output = Utility.base64Encode(encodedhash);
-			}
-			else if(encode.equals("hexa"))
-			{
-				output = Utility.bytesToHex(encodedhash);
-			}
-			else
-			{
-				throw new EncodingException(ConstantString.INVALID_ENCODING);
-			}
-			return output;
-		}
-		catch(Exception e)
-		{
-			return "";
-		}
-	}
-	
-	/**
-	 * Convert byte to hexadecimal number
-	 * @param hash Byte to be converted
-	 * @return String containing hexadecimal number
-	 */
-	public static String bytesToHex(byte[] hash) 
-	{
-		StringBuilder hexString = new StringBuilder();
-		String hex;
-	    for (int i = 0; i < hash.length; i++) 
+	    Map<String, String> queryPairs = new LinkedHashMap<>();
+	    String[] pairs = query.split("&");
+	    for (String pair : pairs) 
 	    {
-		    hex = Integer.toHexString(0xff & hash[i]);
-		    if(hex.length() == 1)
-		    {
-		    	hexString.append('0');
-		    }
-	    	hexString.append(hex);
+	        int idx = pair.indexOf('=');
+	        queryPairs.put(URLDecoder.decode(pair.substring(0, idx), ConstantString.UTF8), URLDecoder.decode(pair.substring(idx + 1), ConstantString.UTF8));
 	    }
-	    return hexString.toString();
+	    return queryPairs;
 	}
-	
+	/**
+	 * Parse query string into JSON object
+	 * @param query Query string
+	 * @return JSONObject contains query parsed
+	 * @throws JSONException if any JSON errors
+	 */
+    public static JSONObject parseQuery(String query)
+    {
+    	JSONObject json = new JSONObject();
+    	if(query == null)
+    	{
+    		query = "";
+    	}
+    	if(query.length() > 0)
+    	{
+	    	String[] args;
+	    	int i;
+	    	String arg = "";
+	    	String[] arr;
+	    	String key = "";
+	    	String value = "";
+    		if(query.contains("&"))
+    		{
+    			args = query.split("&");
+    		}
+    		else
+    		{
+    			args = new String[1];
+    			args[0] = query;
+    		}
+    		for(i = 0; i<args.length; i++)
+    		{
+    			arg = args[i];
+    			if(arg.contains("="))
+    			{
+    				arr = arg.split("=", 2);
+    				key = arr[0];
+    				value = Utility.urlDecode(arr[1]);
+    				json.put(key, value);
+    			}
+    		}
+    	}
+    	return json;
+    }
+    /**
+     * Build query string
+     * @param query JSONObject contains query information
+     * @return Clear query string
+     * @throws JSONException if any JSON errors
+     */
+    public static String buildQuery(JSONObject query)
+    {
+    	String result = "";
+    	
+    	Iterator<?> keys = query.keys();
+    	String key = "";
+    	String value = "";
+    	int i = 0;
+    	StringBuilder bld = new StringBuilder();
+    	while( keys.hasNext() ) 
+    	{
+    	    key = (String) keys.next();
+			if(query.get(key) instanceof JSONObject) 
+			{
+				value = query.optString(key, "");
+				value = Utility.urlEncode(value);
+				if(i > 0)
+				{
+					bld.append("&");
+				}
+				bld.append(key+"="+value);
+			}
+			i++;
+    	}
+    	result = bld.toString();
+    	return result;
+    }
+    /**
+     * Build query
+     * @param query Map string
+     * @return Query string on GET URL
+     * @throws NullPointerException if any null pointer
+     */
+    public static String buildQuery(Map<String, String> query)
+    {
+    	String result = "";
+    	int i = 0;
+    	String key = "";
+    	String value = "";
+    	StringBuilder bld = new StringBuilder();
+    	for(Map.Entry<String, String> entry : query.entrySet())
+    	{
+    	    if(i > 0)
+    	    {
+    	    	bld.append("&");
+    	    }
+    	    key = entry.getKey();
+    	    value = entry.getValue();
+    	    value = Utility.urlEncode(value);
+    	    bld.append(key+"="+value);
+    	    i++;
+    	}
+    	result = bld.toString();
+    	return result;
+   	
+    }
 	/**
 	 * Encode byte array with base 64 encoding
 	 * @param input Byte array to be encoded
@@ -774,6 +757,347 @@ public class Utility {
 	{
 		return Base64.getDecoder().decode(input.getBytes());
 	}
+	
+	/**
+	 * Escape XML
+	 * @param input Input string 
+	 * @return Escaped string
+	 */
+	public static String escapeXML(String input) 
+	{
+		return input.replace("<", "&lt;").replace(">", "&gt").replace("\"", "&quot;");
+	}
+	/**
+	 * Escape HTML
+	 * @param input Input string 
+	 * @return Escaped string
+	 */
+	public static CharSequence escapeHTML(String input) 
+	{
+		return input.replace("<", "&lt;").replace(">", "&gt").replace("\"", "&quot;");
+	}
+	
+	public static String changeTimeZone(String timeString, String dateFormat, String fromTimeZone, String toTimeZone) 
+	{
+		String result = "";
+        DateFormat sourceTime = new SimpleDateFormat(dateFormat);
+        sourceTime.setTimeZone(TimeZone.getTimeZone(fromTimeZone));
+        DateFormat destinationTime = new SimpleDateFormat(dateFormat);
+        destinationTime.setTimeZone(TimeZone.getTimeZone(toTimeZone));
+        Date dateTime;
+        try 
+        {
+        	dateTime = sourceTime.parse(timeString);
+            result = destinationTime.format(dateTime);
+        } 
+        catch (ParseException e) 
+        {
+        	logger.error(e.getMessage());
+        }
+        return result;
+	}
+	public static Date parseTime(String timeString, String dateFormat, String fromTimeZone) 
+	{
+		DateFormat sourceTime = new SimpleDateFormat(dateFormat);
+        sourceTime.setTimeZone(TimeZone.getTimeZone(fromTimeZone));
+        Date dateTime = null;
+        try 
+        {
+        	dateTime = sourceTime.parse(timeString);
+        } 
+        catch (ParseException e) 
+        {
+        	logger.error(e.getMessage());
+        }
+        return dateTime;
+	}
+
+	public static String convertDateTime(String dateTimeFrom, String formatFrom, String timeZoneFrom, String formatTo, String timeZoneTo) throws ParseException
+	{
+		SimpleDateFormat format = new SimpleDateFormat(formatFrom);
+		String dateTimeTo = "";
+		try 
+		{
+			format.setTimeZone(TimeZone.getTimeZone(timeZoneFrom));
+			Date date = format.parse(dateTimeFrom);
+			dateTimeTo = Utility.date(formatTo, date, timeZoneTo);
+		} 
+		catch (ParseException e) 
+		{
+			throw new ParseException("Transaction date time format is invalid", 0);
+		}
+		return dateTimeTo; 
+	}
+	public static String fixDateTime19(String transmissionDateTime) 
+	{
+		if(transmissionDateTime.length() > 19)
+		{
+			transmissionDateTime = transmissionDateTime.substring(0, 19);
+		}
+		return transmissionDateTime;
+	}
+
+	/**
+	 * Get MySQL format of current time
+	 * @return Current time with MySQL format
+	 */
+	public static String mySQLDate()
+	{
+		return now(ConstantString.MYSQL_DATE_TIME_FORMAT);
+	}
+	/**
+	 * Get PgSQL format of current time
+	 * @return Current time with PgSQL format
+	 */
+	public static String pgSQLDate()
+	{
+		return now("yyyy-MM-dd HH:mm:ss.SSS");
+	}
+	
+	/**
+	 * Generate SHA-256 hash code from a string
+	 * @param input Input string
+	 * @return SHA-256 hash code
+	 */
+	public static String sha256(String input)
+	{
+		String output = "";
+		if(input == null)
+		{
+			input = "";
+		}
+		try
+		{
+			MessageDigest digest = MessageDigest.getInstance(ConstantString.HASH_SHA256);
+			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+			output = Utility.bytesToHex(encodedhash);
+			return output;
+		}
+		catch(Exception e)
+		{
+			return "";
+		}
+	}
+	/**
+	 * Generate SHA-256 hash code from a string with specified encoding
+	 * @param input Input string
+	 * @param encode Encoding used
+	 * @return SHA-256 hash code
+	 * @throws InvalidEncodingException if encoding is invalid
+	 */
+	public static String sha256(String input, String encode) throws InvalidEncodingException
+	{
+		String output = "";
+		if(input == null)
+		{
+			input = "";
+		}
+		try
+		{
+			MessageDigest digest = MessageDigest.getInstance(ConstantString.HASH_SHA256);
+			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+			if(encode.equals(ConstantString.BASE_64))
+			{
+				output = Utility.base64Encode(encodedhash);
+			}
+			else if(encode.equals("hexa"))
+			{
+				output = Utility.bytesToHex(encodedhash);
+			}
+			else
+			{
+				throw new InvalidEncodingException(ConstantString.INVALID_ENCODING);
+			}
+			return output;
+		}
+		catch(Exception e)
+		{
+			return "";
+		}
+	}
+	/**
+	 * Generate SHA-1 hash code from a string
+	 * @param input Input string
+	 * @return SHA-1 hash code
+	 */
+	public static String sha1(String input)
+	{
+		String output = "";
+		if(input == null)
+		{
+			input = "";
+		}
+		try
+		{
+			MessageDigest digest = MessageDigest.getInstance("SHA-1");
+			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+			output = Utility.bytesToHex(encodedhash);
+			return output;
+		}
+		catch(Exception e)
+		{
+			return "";
+		}
+	}
+	/**
+	 * Generate SHA-1 hash code from a string with specified encoding
+	 * @param input Input string
+	 * @param encode Encoding used
+	 * @return SHA-1 hash code
+	 * @throws InvalidEncodingException if encoding is invalid
+	 */
+	public static String sha1(String input, String encode) throws InvalidEncodingException
+	{
+		String output = "";
+		if(input == null)
+		{
+			input = "";
+		}
+		try
+		{
+			MessageDigest digest = MessageDigest.getInstance("SHA-1");
+			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+			if(encode.equals(ConstantString.BASE_64))
+			{
+				output = Utility.base64Encode(encodedhash);
+			}
+			else if(encode.equals("hexa"))
+			{
+				output = Utility.bytesToHex(encodedhash);
+			}
+			else
+			{
+				throw new InvalidEncodingException(ConstantString.INVALID_ENCODING);
+			}
+			return output;
+		}
+		catch(Exception e)
+		{
+			return "";
+		}
+	}
+	/**
+	 * Generate SHA-1 with RSA hash code from a string with specified encoding
+	 * @param input Input string
+	 * @param encode Encoding used
+	 * @return SHA-1 with RSA hash code
+	 * @throws InvalidEncodingException if encoding is invalid
+	 */
+	public static String sha1WithRSA(String input, String encode) throws InvalidEncodingException
+	{
+		String output = "";
+		if(input == null)
+		{
+			input = "";
+		}
+		try
+		{
+			KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+			PrivateKey privateKey = keyPair.getPrivate();
+			Signature instance = Signature.getInstance("SHA1withRSA");
+			instance.initSign(privateKey);
+			instance.update((input).getBytes());
+			byte[] signature = instance.sign();			
+			if(encode.equals(ConstantString.BASE_64))
+			{
+				output = Utility.base64Encode(signature);
+			}
+			else if(encode.equals("hexa"))
+			{
+				output = Utility.bytesToHex(signature);
+			}
+			else
+			{
+				throw new InvalidEncodingException(ConstantString.INVALID_ENCODING);
+			}
+			return output;
+		}
+		catch(Exception e)
+		{
+			return "";
+		}
+	}
+	/**
+	 * Generate MD5 hash code from a string
+	 * @param input Input string
+	 * @return MD5 hash code
+	 */
+	public static String md5(String input)
+	{
+		String output = "";
+		if(input == null)
+		{
+			input = "";
+		}
+		try
+		{
+			MessageDigest digest = MessageDigest.getInstance("MD5");
+			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+			output = Utility.bytesToHex(encodedhash);
+			return output;
+		}
+		catch(Exception e)
+		{
+			return "";
+		}
+	}
+	/**
+	 * Generate MD5 hash code from a string with specified encoding
+	 * @param input Input string
+	 * @param encode Encoding used
+	 * @return MD5 hash code
+	 * @throws InvalidEncodingException if encoding is invalid
+	 */
+	public static String md5(String input, String encode) throws InvalidEncodingException
+	{
+		String output = "";
+		if(input == null)
+		{
+			input = "";
+		}
+		try
+		{
+			MessageDigest digest = MessageDigest.getInstance("MD5");
+			byte[] encodedhash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+			if(encode.equals(ConstantString.BASE_64))
+			{
+				output = Utility.base64Encode(encodedhash);
+			}
+			else if(encode.equals("hexa"))
+			{
+				output = Utility.bytesToHex(encodedhash);
+			}
+			else
+			{
+				throw new InvalidEncodingException(ConstantString.INVALID_ENCODING);
+			}
+			return output;
+		}
+		catch(Exception e)
+		{
+			return "";
+		}
+	}
+	/**
+	 * Convert byte to hexadecimal number
+	 * @param hash Byte to be converted
+	 * @return String containing hexadecimal number
+	 */
+	public static String bytesToHex(byte[] hash) 
+	{
+		StringBuilder hexString = new StringBuilder();
+		String hex;
+	    for (int i = 0; i < hash.length; i++) 
+	    {
+		    hex = Integer.toHexString(0xff & hash[i]);
+		    if(hex.length() == 1)
+		    {
+		    	hexString.append('0');
+		    }
+	    	hexString.append(hex);
+	    }
+	    return hexString.toString();
+	}
 
 	/**
 	 * hMac 256
@@ -792,7 +1116,7 @@ public class Utility {
         mac.init(keySpec);
         return mac.doFinal(data.getBytes());
     }
-
+	
 	public static String changeDateFormat(String oldDateString, String oldFormat, String newFormat) 
 	{
 		String newDateString = oldDateString;
@@ -809,5 +1133,107 @@ public class Utility {
 			logger.error(e.getMessage());
 		}
 		return newDateString;
+	}
+	
+	public static Map<String, String> parseURLEncoded(String data)
+	{
+		Map<String, String> queryPairs = new LinkedHashMap<>();
+		String[] pairs = data.split("&");
+		int index = 0;
+	    for (String pair : pairs) 
+	    {
+	        int idx = pair.indexOf("=");
+	        try 
+	        {
+	        	String key = Utility.fixURLEncodeKey(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), index);
+				queryPairs.put(key, URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
+			} 
+	        catch (UnsupportedEncodingException e) 
+	        {
+				logger.error(e.getMessage());
+				//e.printStackTrace();
+			}
+	        index++;
+	    }
+		return queryPairs;
+	}
+
+	private static String fixURLEncodeKey(String key, int index) 
+	{
+		return key.replace("[]", "["+index+"]");
+	}
+
+	public static List<String> asList(String input) 
+	{
+		List<String> list = new ArrayList<>();
+		list.add(input);
+		return list;
+	}
+	public static String basicAuth(String username, String password)
+	{
+		return "Basic " + Utility.base64Encode(username+":"+password);
+	}
+	public static int atoi(String alpha) {
+		if(alpha == null)
+		{
+			return 0;
+		}
+		int value = 0;
+		try
+		{
+			alpha = alpha.replaceAll(ConstantString.FILTER_INTEGER, "");
+			if(alpha.isEmpty())
+			{
+				alpha = "0";
+			}
+			value = Integer.parseInt(alpha);		
+		}
+		catch(NumberFormatException e)
+		{
+			/**
+			 * Do nothing
+			 */
+		}
+		return value;
+	}
+	
+	
+	public static double atof(String alpha) {
+		if(alpha == null)
+		{
+			return 0;
+		}
+		double value = 0;
+		try
+		{
+			alpha = alpha.replaceAll(ConstantString.FILTER_REAL, "");
+			if(alpha.isEmpty())
+			{
+				alpha = "0";
+			}
+			value = Double.parseDouble(alpha);		
+		}
+		catch(NumberFormatException e)
+		{
+			/**
+			 * Do nothing
+			 */
+		}
+		return value;
+	}
+	public static String getResourceDir()
+	{
+		return Utility.class.getResource("/").getFile();
+	}
+	public static String getBaseDir()
+	{
+		if(!Config.getBaseDirConfig().isEmpty())
+		{
+			return Config.getBaseDirConfig();
+		}
+		else
+		{
+			return Utility.getResourceDir();
+		}
 	}
 }

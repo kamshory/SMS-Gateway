@@ -6,40 +6,34 @@ public class User {
 
 	private String username = "";
 	private String name = "";
+	private String email = "";
 	private String password = "";
 	private String phone = "";
 	private long lastActive = 0;
 	private boolean blocked = false;
 	private boolean active = true;
 
-	public User() {
+	public User() 
+	{
 	}
 
 	public User(JSONObject jsonObject) 
 	{
 		this.username = jsonObject.optString("username", "");
 		this.name = jsonObject.optString("name", "");
+		this.email = jsonObject.optString("email", "");
 		this.password = jsonObject.optString("password", "");
 		this.phone = jsonObject.optString("phone", "");
 		this.lastActive = jsonObject.optLong("lastActive", 0);
 		this.blocked = jsonObject.optBoolean("blocked", false);
 		this.active = jsonObject.optBoolean("active", true);
 	}
-	public User(String username, String name, String password, String phone, long lastActive, boolean blocked, boolean active)
-	{
-		this.username = username;
-		this.name = name;
-		this.password = password;
-		this.phone = phone;
-		this.lastActive = lastActive;
-		this.blocked = blocked;
-		this.active = active;
-	}
 
 	public JSONObject toJSONObject() {
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("username", this.username);
 		jsonObject.put("name", this.name);
+		jsonObject.put("email", this.email);
 		jsonObject.put("password", this.password);
 		jsonObject.put("phone", this.phone);
 		jsonObject.put("lastActive", this.lastActive);
@@ -93,6 +87,14 @@ public class User {
 	public void setActive(boolean active) {
 		this.active = active;
 	}
-	
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
+	
 }
